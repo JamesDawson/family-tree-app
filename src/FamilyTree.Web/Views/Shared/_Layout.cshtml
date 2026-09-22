@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Family Tree</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body hx-boost="true" hx-target="#main-content" hx-swap="innerHTML">
+    <header class="site-header">
+        <nav class="site-nav">
+            <a class="site-brand" asp-controller="Home" asp-action="Index">Family Tree</a>
+            <a asp-controller="People" asp-action="Index">People</a>
+            <a asp-controller="People" asp-action="Create">Add person</a>
+        </nav>
+    </header>
+    <main id="main-content" class="site-main">
+        @RenderBody()
+    </main>
+    <script src="~/lib/htmx/htmx.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

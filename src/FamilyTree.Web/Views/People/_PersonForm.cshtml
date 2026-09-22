@@ -1,0 +1,52 @@
+@model PersonFormModel
+
+@* asp-validation-summary overwrites this element's class itself (validation-summary-valid /
+   validation-summary-errors), so no class is set here — see site.css. *@
+<div asp-validation-summary="All"></div>
+
+<div class="form-field">
+    <label asp-for="FirstName"></label>
+    <input asp-for="FirstName" />
+</div>
+<div class="form-field">
+    <label asp-for="MiddleName"></label>
+    <input asp-for="MiddleName" />
+</div>
+<div class="form-field">
+    <label asp-for="LastName"></label>
+    <input asp-for="LastName" />
+</div>
+<div class="form-field">
+    <label asp-for="MaidenName"></label>
+    <input asp-for="MaidenName" />
+</div>
+<div class="form-field">
+    <label asp-for="Sex"></label>
+    <select asp-for="Sex">
+        <option value="unknown">Unknown</option>
+        <option value="female">Female</option>
+        <option value="male">Male</option>
+    </select>
+</div>
+<div class="form-field">
+    <label asp-for="BornOn"></label>
+    <input asp-for="BornOn" placeholder="e.g. 1952-03-14, 1952, abt 1952" />
+</div>
+<div class="form-field">
+    <label asp-for="BornPlace"></label>
+    <input asp-for="BornPlace" />
+</div>
+<div class="form-field">
+    <label asp-for="DiedOn"></label>
+    <input asp-for="DiedOn" placeholder="e.g. 1998-11-02, bef 2000" />
+</div>
+<div class="form-field">
+    <label asp-for="DiedPlace"></label>
+    <input asp-for="DiedPlace" />
+</div>
+<div class="form-field">
+    <label asp-for="Notes"></label>
+    <textarea asp-for="Notes" rows="8" placeholder="Markdown supported"></textarea>
+</div>
+
+<button type="submit" class="button">Save</button>

@@ -1,0 +1,251 @@
+:root {
+  --color-bg: #fdfcfb;
+  --color-text: #262220;
+  --color-muted: #746b64;
+  --color-border: #ddd3c9;
+  --color-accent: #7a4f3a;
+  --color-accent-contrast: #fff;
+  --color-danger: #a3352b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--color-accent);
+}
+
+.site-header {
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.75rem 1.5rem;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.site-brand {
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.site-main {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+h1 {
+  margin-top: 0;
+}
+
+.button,
+button.button,
+button.link-button {
+  display: inline-block;
+  font: inherit;
+  cursor: pointer;
+}
+
+.button {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  border: none;
+  border-radius: 0.3rem;
+  padding: 0.4rem 0.9rem;
+  text-decoration: none;
+  margin-right: 0.4rem;
+}
+
+.button.danger {
+  background: var(--color-danger);
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  text-decoration: underline;
+  padding: 0;
+  margin-left: 0.5rem;
+  font-size: 0.9em;
+}
+
+.muted {
+  color: var(--color-muted);
+  font-size: 0.9em;
+}
+
+.error {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.actions {
+  margin-bottom: 1.5rem;
+}
+
+dl.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 1rem 0;
+}
+
+dl.facts dt {
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+dl.facts dd {
+  margin: 0;
+}
+
+section {
+  margin: 1.75rem 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+section h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+ul {
+  padding-left: 1.25rem;
+}
+
+.person-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.person-table th,
+.person-table td {
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.search-form {
+  margin-bottom: 1rem;
+}
+
+.form-field {
+  margin-bottom: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 30rem;
+}
+
+.form-field label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+input[type="text"],
+input[type="search"],
+select,
+textarea {
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  background: #fff;
+}
+
+/* ASP.NET Core's asp-validation-summary tag helper overwrites the class attribute itself
+   (validation-summary-valid when clean, validation-summary-errors when there are errors) rather than
+   respecting whatever class was written in the markup. */
+.validation-summary-errors ul {
+  color: var(--color-danger);
+  padding-left: 1rem;
+}
+
+.add-relationship {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--color-border);
+}
+
+.add-relationship .inline-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  align-items: center;
+}
+
+.search-results {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  max-width: 24rem;
+}
+
+.search-results li {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.search-results li:last-child {
+  border-bottom: none;
+}
+
+.search-results button {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+}
+
+.search-results button:hover {
+  background: #f2ece6;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+}
+
+.history-list li {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ancestor-tree {
+  list-style: none;
+}
+
+.ancestor-tree .ancestor-tree {
+  margin-top: 0.4rem;
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--color-border);
+}
+
+.recent-changes {
+  list-style: none;
+  padding: 0;
+}
+
+.recent-changes li {
+  padding: 0.3rem 0;
+}

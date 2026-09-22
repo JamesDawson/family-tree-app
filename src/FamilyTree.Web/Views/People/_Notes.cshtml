@@ -1,0 +1,13 @@
+@using Markdig
+@model string
+
+@* The only place in this app that emits raw HTML. Person.Notes is locally-authored Markdown in a
+   single-user tool, not third-party input — every other field goes through Razor's normal encoding. *@
+@if (string.IsNullOrWhiteSpace(Model))
+{
+    <p class="muted">No notes yet.</p>
+}
+else
+{
+    @Html.Raw(Markdown.ToHtml(Model))
+}

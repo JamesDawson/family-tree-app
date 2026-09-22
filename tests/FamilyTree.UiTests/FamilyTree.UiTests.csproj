@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!--
+      Microsoft.Playwright.MSTest 1.62.0 (the latest available) still targets the pre-MTP
+      MSTest.TestFramework 2.2.7, and its PageTest/BrowserTest base classes aren't discovered by
+      MSTest v4's MTP source-generator-based discovery (verified: even a trivial class deriving from
+      PageTest is silently excluded from the "list tests" command). Until Playwright's package catches
+      up, this project runs under classic VSTest instead of MTP: see the project-local global.json,
+      which reverts "dotnet test" back to VSTest mode for invocations rooted in this directory,
+      overriding the repo-wide MTP setting used by every other test project.
+    -->
+    <OutputType>Library</OutputType>
+    <EnableMSTestRunner>false</EnableMSTestRunner>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Playwright.MSTest" Version="1.62.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FamilyTree.Web\FamilyTree.Web.csproj" />
+  </ItemGroup>
+
+</Project>

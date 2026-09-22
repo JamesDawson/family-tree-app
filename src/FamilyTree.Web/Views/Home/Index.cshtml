@@ -1,0 +1,28 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h1>Family Tree</h1>
+
+<p><strong>@Model.PersonCount</strong> @(Model.PersonCount == 1 ? "person" : "people") recorded.</p>
+
+<p>
+    <a class="button" asp-controller="People" asp-action="Index">Browse people</a>
+    <a class="button" asp-controller="People" asp-action="Create">Add a person</a>
+</p>
+
+@if (Model.RecentChanges.Count > 0)
+{
+    <h2>Recently changed</h2>
+    <ul class="recent-changes">
+        @foreach (var change in Model.RecentChanges)
+        {
+            <li>
+                <a asp-controller="People" asp-action="Details" asp-route-id="@change.Person.Id">@change.Person.Name.DisplayName</a>
+                — @change.LatestCommit.Message
+                <span class="muted">(@change.LatestCommit.When.LocalDateTime.ToString("g"))</span>
+            </li>
+        }
+    </ul>
+}

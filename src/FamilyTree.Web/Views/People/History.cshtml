@@ -1,0 +1,37 @@
+@model PersonHistoryViewModel
+@{
+    ViewData["Title"] = $"History — {Model.Person.Name.DisplayName}";
+}
+
+<h1>History: @Model.Person.Name.DisplayName</h1>
+<p><a asp-action="Details" asp-route-id="@Model.Person.Id">&larr; Back</a></p>
+
+@if (Model.Commits.Count == 0)
+{
+    <p class="muted">No history yet.</p>
+}
+else
+{
+    <ul class="history-list">
+        @for (var i = 0; i < Model.Commits.Count; i++)
+        {
+            var commit = Model.Commits[i];
+            <li>
+                <strong>@commit.Message</strong>
+                <span class="muted">@commit.AuthorName — @commit.When.LocalDateTime.ToString("g") (@commit.ShortSha)</span>
+                @if (i > 0)
+                {
+                    <button type="button" class="link-button"
+                            hx-post="@Url.Action("Revert", new { id = Model.Person.Id, sha = commit.Sha })"
+                            hx-confirm="Revert @Model.Person.Name.DisplayName to this version from @commit.When.LocalDateTime.ToString("g")? This adds a new commit rather than deleting history.">
+                        Revert to this version
+                    </button>
+                }
+                else
+                {
+                    <span class="muted">(current)</span>
+                }
+            </li>
+        }
+    </ul>
+}

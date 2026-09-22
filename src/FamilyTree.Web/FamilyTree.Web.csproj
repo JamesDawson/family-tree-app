@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\FamilyTree.Data\FamilyTree.Data.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!--
+      The static web assets pipeline's precompressed (.gz) variants are only actually written to disk
+      during `dotnet publish`, but the endpoints manifest advertises them unconditionally — so a plain
+      `dotnet build` + `dotnet run`/`dotnet FamilyTree.Web.dll` (this app's normal, expected way to run
+      locally; it isn't published/deployed) serves an empty body with stale headers to any real browser,
+      since every browser sends "Accept-Encoding: gzip". Compression isn't worth anything for a local
+      single-user app anyway, so it's simplest to just turn it off.
+    -->
+    <CompressionEnabled>false</CompressionEnabled>
+  </PropertyGroup>
+
+</Project>

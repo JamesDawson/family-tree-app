@@ -1,0 +1,38 @@
+@model PersonListViewModel
+@{
+    ViewData["Title"] = "People";
+}
+
+<h1>People</h1>
+
+<form asp-controller="People" asp-action="Index" method="get" class="search-form">
+    <input type="search" name="q" value="@Model.Query" placeholder="Search by name…" autofocus />
+    <button type="submit" class="button">Search</button>
+</form>
+
+@if (Model.People.Count == 0)
+{
+    <p>No one matches yet.</p>
+}
+else
+{
+    <table class="person-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Born</th>
+                <th>Died</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var person in Model.People)
+            {
+                <tr>
+                    <td><a asp-controller="People" asp-action="Details" asp-route-id="@person.Id">@person.Name.DisplayName</a></td>
+                    <td>@person.BornOn</td>
+                    <td>@person.DiedOn</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

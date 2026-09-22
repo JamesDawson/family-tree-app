@@ -1,0 +1,9 @@
+@model PersonTreeViewModel
+@{
+    ViewData["Title"] = $"Ancestor tree — {Model.Root.Name.DisplayName}";
+}
+
+<h1>Ancestor tree: @Model.Root.Name.DisplayName</h1>
+<p><a asp-action="Details" asp-route-id="@Model.Root.Id">&larr; Back</a></p>
+
+<partial name="_AncestorNode" model="@(new AncestorNodeViewModel { Person = Model.Root, ById = Model.ById, Depth = 0 })" />

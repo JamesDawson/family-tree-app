@@ -1,0 +1,24 @@
+@model PersonSearchResultsViewModel
+
+@if (Model.Matches.Count == 0)
+{
+    <p class="muted">No matches.</p>
+}
+else
+{
+    <ul class="search-results">
+        @foreach (var person in Model.Matches)
+        {
+            <li>
+                <button type="button"
+                        hx-post="@(Model.RelationshipKind == "parent"
+                            ? Url.Action("AddParent", new { id = Model.TargetPersonId })
+                            : Url.Action("AddSpouse", new { id = Model.TargetPersonId }))"
+                        hx-vals='{"@(Model.RelationshipKind == "parent" ? "parentId" : "spouseId")":"@person.Id"}'
+                        hx-include="@(Model.RelationshipKind == "spouse" ? "#add-spouse-form" : null)">
+                    @person.Name.DisplayName @(person.BornOn is null ? "" : $"({person.BornOn})")
+                </button>
+            </li>
+        }
+    </ul>
+}

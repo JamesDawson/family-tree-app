@@ -1,0 +1,13 @@
+bin/
+obj/
+TestResults/
+*.user
+
+# The family tree data lives in its own, separate git repository nested here — see the plan/README.
+data/
+
+# Editor/tooling local state
+.vs/
+.vscode/
+.idea/
+.claude/

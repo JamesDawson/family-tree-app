@@ -1,0 +1,22 @@
+@model AncestorNodeViewModel
+
+<ul class="ancestor-tree">
+    <li>
+        <a asp-controller="People" asp-action="Details" asp-route-id="@Model.Person.Id">@Model.Person.Name.DisplayName</a>
+        @(Model.Person.BornOn is null ? "" : $"({Model.Person.BornOn})")
+
+        @if (Model.Depth < AncestorNodeViewModel.MaxDepth)
+        {
+            var parents = Model.Person.ParentIds
+                .Select(id => Model.ById.GetValueOrDefault(id))
+                .Where(p => p is not null)
+                .Select(p => p!)
+                .ToList();
+
+            foreach (var parent in parents)
+            {
+                <partial name="_AncestorNode" model="@(new AncestorNodeViewModel { Person = parent, ById = Model.ById, Depth = Model.Depth + 1 })" />
+            }
+        }
+    </li>
+</ul>

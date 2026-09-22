@@ -1,0 +1,10 @@
+@model PersonFormModel
+@{
+    ViewData["Title"] = "Add person";
+}
+
+<h1>Add person</h1>
+
+<form asp-route="PeopleCreate" method="post">
+    <partial name="_PersonForm" />
+</form>
