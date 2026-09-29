@@ -74,6 +74,45 @@ button.link-button {
   background: var(--color-danger);
 }
 
+button:disabled,
+.button:disabled,
+button.htmx-request {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.saving-indicator {
+  display: none;
+}
+
+form.htmx-request .saving-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-muted);
+}
+
+.saving-indicator::before {
+  content: "";
+  width: 0.9em;
+  height: 0.9em;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .saving-indicator::before {
+    animation: saving-spin 0.8s linear infinite;
+  }
+}
+
+@keyframes saving-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .link-button {
   background: none;
   border: none;

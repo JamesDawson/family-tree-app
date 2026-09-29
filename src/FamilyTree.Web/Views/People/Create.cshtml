@@ -5,6 +5,6 @@
 
 <h1>Add person</h1>
 
-<form asp-route="PeopleCreate" method="post">
+<form asp-route="PeopleCreate" method="post" hx-disabled-elt="find button[type=submit]">
     <partial name="_PersonForm" />
 </form>

@@ -5,6 +5,6 @@
 
 <h1>Edit @Model.FirstName @Model.LastName</h1>
 
-<form asp-action="Edit" asp-route-id="@ViewData["PersonId"]" method="post">
+<form asp-action="Edit" asp-route-id="@ViewData["PersonId"]" method="post" hx-disabled-elt="find button[type=submit]">
     <partial name="_PersonForm" />
 </form>

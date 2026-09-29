@@ -91,6 +91,37 @@ public sealed class HtmxBehaviorTests : PageTest
     }
 
     [TestMethod]
+    public async Task SavingANewPerson_WhileTheRequestIsInFlight_ShowsSavingFeedbackAndDisablesSave()
+    {
+        // Saving includes the git push, so hold the POST open to observe the in-flight UI.
+        var release = new TaskCompletionSource();
+        await Page.RouteAsync(
+            $"{_app.BaseUrl}/people",
+            async route =>
+            {
+                if (route.Request.Method == "POST")
+                {
+                    await release.Task;
+                }
+
+                await route.ContinueAsync();
+            });
+
+        await Page.GotoAsync($"{_app.BaseUrl}/people/new");
+        await Page.Locator("input[name=FirstName]").FillAsync("Jane");
+        await Page.Locator("input[name=LastName]").FillAsync("Doe");
+        var save = Page.GetByRole(AriaRole.Button, new() { Name = "Save" });
+        await save.ClickAsync();
+
+        await Expect(Page.Locator(".saving-indicator")).ToBeVisibleAsync();
+        await Expect(save).ToBeDisabledAsync();
+
+        release.SetResult();
+
+        await Expect(Page.Locator("h1")).ToHaveTextAsync("Jane Doe");
+    }
+
+    [TestMethod]
     public async Task RelationshipTypeahead_NarrowsResultsAsYouType()
     {
         await CreatePersonAsync("Alice", "Smith", "1930");
