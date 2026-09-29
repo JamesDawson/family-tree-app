@@ -1,0 +1,31 @@
+name: family-tree
+
+services:
+  # One-off: a new named volume is owned by root, but the app runs as uid 1654.
+  init-data:
+    image: busybox
+    command: chown 1654:1654 /data
+    volumes:
+      - family-tree-data:/data
+    restart: "no"
+
+  web:
+    # Build first: dotnet publish src/FamilyTree.Web -t:PublishContainer -p:ContainerImageTags=1.0.0
+    image: family-tree-web:${FAMILY_TREE_TAG:-1.0.0}
+    depends_on:
+      init-data:
+        condition: service_completed_successfully
+    ports:
+      - "${FAMILY_TREE_PORT:-8080}:8080"
+    environment:
+      # The app refuses to start without these (used as the git commit author).
+      FamilyTreeData__DefaultCommitAuthorName: ${COMMIT_AUTHOR_NAME:?Set COMMIT_AUTHOR_NAME}
+      FamilyTreeData__DefaultCommitAuthorEmail: ${COMMIT_AUTHOR_EMAIL:?Set COMMIT_AUTHOR_EMAIL}
+      # Already the image default; shown here for clarity.
+      FamilyTreeData__RepositoryPath: /data
+    volumes:
+      - family-tree-data:/data
+    restart: unless-stopped
+
+volumes:
+  family-tree-data:

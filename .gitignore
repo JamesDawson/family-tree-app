@@ -11,3 +11,6 @@ data/
 .vscode/
 .idea/
 .claude/
+
+# Local compose settings
+.env

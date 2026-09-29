@@ -14,9 +14,31 @@
       `dotnet build` + `dotnet run`/`dotnet FamilyTree.Web.dll` (this app's normal, expected way to run
       locally; it isn't published/deployed) serves an empty body with stale headers to any real browser,
       since every browser sends "Accept-Encoding: gzip". Compression isn't worth anything for a local
-      single-user app anyway, so it's simplest to just turn it off.
+      single-user app anyway, so it's simplest to just turn it off. Published builds (including the
+      container image) do write the compressed variants, so compression stays on for those.
     -->
-    <CompressionEnabled>false</CompressionEnabled>
+    <CompressionEnabled Condition="'$(_IsPublishing)' != 'true'">false</CompressionEnabled>
   </PropertyGroup>
+
+  <!--
+    Container image (.NET SDK container support): dotnet publish -t:PublishContainer
+    No trimming/AOT: LibGit2Sharp is native and YamlDotNet is reflection-based.
+  -->
+  <PropertyGroup>
+    <ContainerRepository>family-tree-web</ContainerRepository>
+    <ContainerFamily>noble-chiseled</ContainerFamily>
+    <ContainerRuntimeIdentifier>linux-x64</ContainerRuntimeIdentifier>
+    <!-- Publish must target the same RID as the image (a plain build/run stays portable). -->
+    <RuntimeIdentifier Condition="'$(_IsPublishing)' == 'true'">$(ContainerRuntimeIdentifier)</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ContainerPort Include="8080" Type="tcp" />
+    <ContainerEnvironmentVariable Include="FamilyTreeData__RepositoryPath" Value="/data" />
+  </ItemGroup>
 
 </Project>
