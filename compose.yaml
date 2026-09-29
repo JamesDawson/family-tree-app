@@ -23,6 +23,11 @@ services:
       FamilyTreeData__DefaultCommitAuthorEmail: ${COMMIT_AUTHOR_EMAIL:?Set COMMIT_AUTHOR_EMAIL}
       # Already the image default; shown here for clarity.
       FamilyTreeData__RepositoryPath: /data
+      # Optional. When set, an empty /data volume is initialised by cloning this HTTPS repo, the app
+      # fast-forwards it on startup, and every commit it makes is pushed back. Blank = local-only.
+      FamilyTreeData__RemoteUrl: ${DATA_REPO_URL:-}
+      # GitHub PAT used for the clone, fetch and pushes (needs Contents: read/write on the repo).
+      FamilyTreeData__GitHubToken: ${GITHUB_PAT:-}
     volumes:
       - family-tree-data:/data
     restart: unless-stopped

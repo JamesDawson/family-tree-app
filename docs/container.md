@@ -29,4 +29,25 @@ docker run -d -p 8080:8080 -v family-tree-data:/data `
 
 Then open <http://localhost:8080>. The app starts only if both author settings are set.
 
+## Syncing the data with GitHub
+
+To keep the data in a GitHub repository, also set:
+
+| Variable | Purpose |
+| --- | --- |
+| `FamilyTreeData__RemoteUrl` | HTTPS URL of the data repo, e.g. `https://github.com/<owner>/<repo>.git` |
+| `FamilyTreeData__GitHubToken` | Personal access token with read and write access to that repo's contents |
+
+With `docker compose`, set `DATA_REPO_URL` and `GITHUB_PAT` in `.env` instead.
+
+- **First run:** an empty `/data` volume is initialised by cloning the repo. An empty remote is seeded with a baseline commit.
+- **Later runs:** if `/data` already holds a clone, the app fast-forwards it from the remote at startup. If that fails (offline, diverged), it logs a warning and starts with the local copy. `RemoteUrl` is not re-cloned.
+- **Every change:** the app commits and then pushes. If a push fails, the commit stays local, a warning is logged, and the next successful push includes it.
+- **A failed first clone** stops the app at startup with an error. Check the URL and the token.
+- The token is not written to `/data/.git/config`. It is visible in the container's environment (`docker inspect`), so prefer a fine-grained token limited to one repo.
+
+The volume ownership step above is still needed.
+
+## Notes
+
 The image serves HTTP only. The "Failed to determine the https port" warning in the logs is expected. Put a TLS-terminating proxy in front of it if needed.
