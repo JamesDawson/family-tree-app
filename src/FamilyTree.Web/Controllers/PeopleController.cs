@@ -431,7 +431,7 @@ public sealed class PeopleController(
         return View(new PersonTreeViewModel { Root = person, ById = all.ToDictionary(p => p.Id) });
     }
 	
-	    [HttpGet("{id}/graph")]
+    [HttpGet("{id}/graph")]
     public async Task<IActionResult> Graph(string id, CancellationToken ct)
     {
         var person = await repository.GetByIdAsync(id, ct);

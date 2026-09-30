@@ -9,7 +9,7 @@
 
         <label>Ancestors
             <select data-graph-up aria-label="Generations of ancestors to show">
-                @for (var i = 0; i <= 6; i++)
+                @for (var i = 0; i <= 12; i++)
                 {
                     <option value="@i" selected="@(i == PersonGraphViewModel.DefaultAncestors)">@i</option>
                 }
@@ -17,7 +17,7 @@
         </label>
         <label>Descendants
             <select data-graph-down aria-label="Generations of descendants to show">
-                @for (var i = 0; i <= 6; i++)
+                @for (var i = 0; i <= 12; i++)
                 {
                     <option value="@i" selected="@(i == PersonGraphViewModel.DefaultDescendants)">@i</option>
                 }

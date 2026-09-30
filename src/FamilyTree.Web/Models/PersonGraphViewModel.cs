@@ -4,11 +4,11 @@ namespace FamilyTree.Web.Models;
 
 public sealed class PersonGraphViewModel
 {
-    public const int DefaultAncestors = 3;
+    public const int DefaultAncestors = 10;
     public const int DefaultDescendants = 2;
 
     /// <summary>Upper bound on generations a single request may ask for, so one call can't pull the whole archive.</summary>
-    public const int MaxGenerations = 8;
+    public const int MaxGenerations = 10;
 
     public required Person Person { get; init; }
 }
