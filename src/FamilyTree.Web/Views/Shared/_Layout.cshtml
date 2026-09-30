@@ -1,3 +1,21 @@
+@using System.Reflection
+@functions {
+    // Informational version may carry "+<commit sha>" build metadata; keep the SHA short.
+    private static readonly string AppVersion = GetAppVersion();
+
+    private static string GetAppVersion()
+    {
+        string? version = typeof(Program).Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        if (string.IsNullOrEmpty(version))
+        {
+            return "unknown";
+        }
+
+        int plus = version.IndexOf('+');
+        return plus >= 0 && version.Length > plus + 8 ? version[..(plus + 8)] : version;
+    }
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,6 +35,9 @@
     <main id="main-content" class="site-main">
         @RenderBody()
     </main>
+    <footer class="site-footer">
+        Family Tree v@(AppVersion)
+    </footer>
     <script src="~/lib/htmx/htmx.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/graph.js" asp-append-version="true"></script>

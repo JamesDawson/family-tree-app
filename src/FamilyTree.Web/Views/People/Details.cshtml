@@ -1,3 +1,4 @@
+@using FamilyTree.Data.Images
 @model PersonWithRelationships
 @{
     var person = Model.Person;
@@ -35,6 +36,11 @@
 <section>
     <h2>Notes</h2>
     <partial name="_Notes" model="@person.Notes" />
+</section>
+
+<section>
+    <h2>Photos</h2>
+    <partial name="_Images" model="@((person.Id, (IReadOnlyList<PersonImage>)(ViewData["Images"] as IReadOnlyList<PersonImage> ?? [])))" />
 </section>
 
 <section>

@@ -1,3 +1,4 @@
+using FamilyTree.Data.Images;
 using FamilyTree.Data.Models;
 using FamilyTree.Data.Relationships;
 using FamilyTree.Data.Repository;
@@ -12,7 +13,8 @@ public sealed class PeopleController(
     IPersonRepository repository,
     IRelationshipResolver relationshipResolver,
     IFamilyGraphBuilder familyGraphBuilder,
-    ICommitAuthorProvider commitAuthorProvider) : HtmxController
+    ICommitAuthorProvider commitAuthorProvider,
+    IPersonImageStore imageStore) : HtmxController
 {
     [HttpGet("")]
     public async Task<IActionResult> Index(string? q, CancellationToken ct)
@@ -43,6 +45,7 @@ public sealed class PeopleController(
 
         var all = await repository.GetAllAsync(ct);
         var resolved = relationshipResolver.Resolve(person, all);
+        ViewData["Images"] = await imageStore.ListAsync(id, ct);
 
         return View(resolved);
     }
@@ -185,6 +188,7 @@ public sealed class PeopleController(
             return RedirectAfterSave(Url.Action(nameof(Details), new { id })!);
         }
 
+        // Images are deliberately left on disk: the person can be restored from git history and should get their photos back.
         return RedirectAfterSave(Url.Action(nameof(Index))!);
     }
 

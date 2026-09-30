@@ -1,4 +1,5 @@
 using FamilyTree.Data.Git;
+using FamilyTree.Data.Images;
 using FamilyTree.Data.Options;
 using FamilyTree.Data.Parsing;
 using FamilyTree.Data.Relationships;
@@ -31,6 +32,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IRelationshipResolver, RelationshipGraphResolver>();
         services.AddSingleton<IFamilyGraphBuilder, FamilyGraphBuilder>();
         services.AddSingleton<IPersonRepository, FilePersonRepository>();
+        services.AddSingleton<IPersonImageStore, LocalPersonImageStore>();
 
         return services;
     }

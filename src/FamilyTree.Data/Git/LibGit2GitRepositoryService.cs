@@ -44,6 +44,28 @@ public sealed class LibGit2GitRepositoryService : IGitRepositoryService
 
     public void EnsureInitialized()
     {
+        EnsureRepositoryInitialized();
+        ExcludeImagesDirectory();
+    }
+
+    /// <summary>Uploaded images live under the data root but must never be committed or pushed. <c>.git/info/exclude</c> is local, so it works for existing repos and clones without a commit.</summary>
+    private void ExcludeImagesDirectory()
+    {
+        var infoDirectory = Path.Combine(_paths.RootPath, ".git", "info");
+        Directory.CreateDirectory(infoDirectory);
+
+        var excludePath = Path.Combine(infoDirectory, "exclude");
+        const string rule = "/images/";
+        if (File.Exists(excludePath) && File.ReadAllLines(excludePath).Any(l => l.Trim() == rule))
+        {
+            return;
+        }
+
+        File.AppendAllText(excludePath, $"{rule}{Environment.NewLine}");
+    }
+
+    private void EnsureRepositoryInitialized()
+    {
         Directory.CreateDirectory(_paths.RootPath);
 
         if (GitRepository.IsValid(_paths.RootPath))

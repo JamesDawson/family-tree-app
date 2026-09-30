@@ -1,0 +1,37 @@
+@using FamilyTree.Data.Images
+@model (string PersonId, IReadOnlyList<PersonImage> Images)
+
+@if (TempData["ImageError"] is string imageError)
+{
+    <p class="error">@imageError</p>
+}
+
+@if (Model.Images.Count == 0)
+{
+    <p class="muted">No photos yet.</p>
+}
+else
+{
+    <ul class="photo-grid">
+        @foreach (var image in Model.Images)
+        {
+            <li class="photo-item">
+                <a href="@Url.Action("Original", "PersonImages", new { id = Model.PersonId, imageId = image.Id })" target="_blank" rel="noopener" hx-boost="false">
+                    <img src="@Url.Action("Thumbnail", "PersonImages", new { id = Model.PersonId, imageId = image.Id })"
+                         alt="@image.OriginalFileName" loading="lazy" />
+                </a>
+                <form asp-controller="PersonImages" asp-action="Delete" asp-route-id="@Model.PersonId" asp-route-imageId="@image.Id" method="post"
+                      hx-confirm="Delete this photo? This can't be undone.">
+                    <button type="submit" class="link-button">Delete</button>
+                </form>
+            </li>
+        }
+    </ul>
+}
+
+<form asp-controller="PersonImages" asp-action="Upload" asp-route-id="@Model.PersonId" method="post"
+      enctype="multipart/form-data" hx-encoding="multipart/form-data" class="add-relationship">
+    <input type="file" name="files" accept="image/jpeg,image/png,image/webp" multiple required />
+    <button type="submit" class="button">Upload</button>
+    <span class="muted">JPEG, PNG or WebP, up to 10 MB each.</span>
+</form>

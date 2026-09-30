@@ -13,6 +13,9 @@ public sealed class FamilyTreeDataOptions
     /// <summary>Git commit author email used when no other identity is available. Must be set before first run.</summary>
     public required string DefaultCommitAuthorEmail { get; set; }
 
+    /// <summary>Largest accepted image upload, in bytes. Defaults to 10 MB.</summary>
+    public long MaxImageBytes { get; set; } = 10 * 1024 * 1024;
+
     /// <summary>Optional HTTPS URL of the remote repository to clone into <see cref="RepositoryPath"/> on first run and push every commit to. Blank keeps the data local-only.</summary>
     public string? RemoteUrl { get; set; }
 
