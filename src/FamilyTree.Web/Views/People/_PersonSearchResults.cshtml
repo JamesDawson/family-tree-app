@@ -16,7 +16,7 @@ else
                             : Url.Action("AddSpouse", new { id = Model.TargetPersonId }))"
                         hx-vals='{"@(Model.RelationshipKind == "parent" ? "parentId" : "spouseId")":"@person.Id"}'
                         hx-include="@(Model.RelationshipKind == "spouse" ? "#add-spouse-form" : null)">
-                    @person.Name.DisplayName @(person.BornOn is null ? "" : $"({person.BornOn})")
+                    @person.Name.DisplayName @(person.BornOn is null ? "" : $"({person.BornOn.ToDisplayString()})")
                 </button>
             </li>
         }

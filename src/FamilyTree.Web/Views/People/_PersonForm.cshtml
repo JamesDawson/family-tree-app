@@ -30,7 +30,7 @@
 </div>
 <div class="form-field">
     <label asp-for="BornOn"></label>
-    <input asp-for="BornOn" placeholder="e.g. 1952-03-14, 1952, abt 1952" />
+    <partial name="_DateInput" model="@(nameof(Model.BornOn), Model.BornOn, "e.g. 15-Jun-1976, 1976, abt 1976", (string?)null)" />
 </div>
 <div class="form-field">
     <label asp-for="BornPlace"></label>
@@ -38,7 +38,7 @@
 </div>
 <div class="form-field">
     <label asp-for="DiedOn"></label>
-    <input asp-for="DiedOn" placeholder="e.g. 1998-11-02, bef 2000" />
+    <partial name="_DateInput" model="@(nameof(Model.DiedOn), Model.DiedOn, "e.g. 02-Nov-1998, bef 2000", (string?)null)" />
 </div>
 <div class="form-field">
     <label asp-for="DiedPlace"></label>

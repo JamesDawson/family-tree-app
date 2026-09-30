@@ -26,9 +26,9 @@
     <dt>Sex</dt>
     <dd>@person.Sex</dd>
     <dt>Born</dt>
-    <dd>@person.BornOn @(string.IsNullOrWhiteSpace(person.BornPlace) ? "" : $"in {person.BornPlace}")</dd>
+    <dd>@person.BornOn?.ToDisplayString() @(string.IsNullOrWhiteSpace(person.BornPlace) ? "" : $"in {person.BornPlace}")</dd>
     <dt>Died</dt>
-    <dd>@(person.DiedOn is null ? "—" : $"{person.DiedOn} {(string.IsNullOrWhiteSpace(person.DiedPlace) ? "" : $"in {person.DiedPlace}")}")</dd>
+    <dd>@(person.DiedOn is null ? "—" : $"{person.DiedOn.ToDisplayString()} {(string.IsNullOrWhiteSpace(person.DiedPlace) ? "" : $"in {person.DiedPlace}")}")</dd>
 </dl>
 
 <section>
@@ -119,7 +119,7 @@
             {
                 <li>
                     <a asp-action="Details" asp-route-id="@spouse.Person.Id">@spouse.Person.Name.DisplayName</a>
-                    @(spouse.Relationship.MarriedOn is null ? "" : $"married {spouse.Relationship.MarriedOn}")
+                    @(spouse.Relationship.MarriedOn is null ? "" : $"married {spouse.Relationship.MarriedOn.ToDisplayString()}")
                     @(spouse.Relationship.Current ? "" : "(former)")
                     <button type="button" class="link-button"
                             hx-post="@Url.Action("RemoveSpouse", new { id = person.Id, spouseId = spouse.Person.Id })"
@@ -133,8 +133,8 @@
 
     <div class="add-relationship">
         <form id="add-spouse-form" class="inline-fields">
-            <input type="text" name="marriedOn" placeholder="Married on (e.g. 1974-06-02)" />
-            <input type="text" name="divorcedOn" placeholder="Divorced on (optional)" />
+            <partial name="_DateInput" model="@("marriedOn", (string?)null, "Married on (e.g. 02-Jun-1974)", (string?)null)" />
+            <partial name="_DateInput" model="@("divorcedOn", (string?)null, "Divorced on (optional)", (string?)null)" />
             <label><input type="checkbox" name="current" value="true" checked /> Current</label>
         </form>
         <input type="search" placeholder="Add a spouse…" name="q"

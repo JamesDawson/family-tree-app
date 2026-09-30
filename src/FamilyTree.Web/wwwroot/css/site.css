@@ -208,6 +208,58 @@ textarea {
   background: #fff;
 }
 
+.date-input {
+  position: relative;
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: stretch;
+}
+
+.date-input input[type="text"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.date-picker-button {
+  font: inherit;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  min-width: 2.75rem;
+}
+
+/* Kept in the layout (not display:none) so showPicker() can anchor the native picker to it. */
+.date-picker {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Mobile: 16px+ text stops iOS zooming on focus; 44px tap targets. */
+@media (max-width: 40rem) {
+  input[type="text"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px;
+    min-height: 2.75rem;
+  }
+
+  .date-picker-button {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+
+  .form-field {
+    max-width: none;
+  }
+}
+
 /* ASP.NET Core's asp-validation-summary tag helper overwrites the class attribute itself
    (validation-summary-valid when clean, validation-summary-errors when there are errors) rather than
    respecting whatever class was written in the markup. */

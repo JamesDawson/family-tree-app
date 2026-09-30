@@ -268,9 +268,9 @@ public sealed class PeopleController(
         LastName = person.Name.Last,
         MaidenName = person.Name.MaidenName,
         Sex = person.Sex.ToString().ToLowerInvariant(),
-        BornOn = person.BornOn?.ToString(),
+        BornOn = person.BornOn?.ToDisplayString(),
         BornPlace = person.BornPlace,
-        DiedOn = person.DiedOn?.ToString(),
+        DiedOn = person.DiedOn?.ToDisplayString(),
         DiedPlace = person.DiedPlace,
         Notes = person.Notes,
     };

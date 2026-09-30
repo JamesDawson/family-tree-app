@@ -3,7 +3,7 @@
 <ul class="ancestor-tree">
     <li>
         <a asp-controller="People" asp-action="Details" asp-route-id="@Model.Person.Id">@Model.Person.Name.DisplayName</a>
-        @(Model.Person.BornOn is null ? "" : $"({Model.Person.BornOn})")
+        @(Model.Person.BornOn is null ? "" : $"({Model.Person.BornOn.ToDisplayString()})")
 
         @if (Model.Depth < AncestorNodeViewModel.MaxDepth)
         {
