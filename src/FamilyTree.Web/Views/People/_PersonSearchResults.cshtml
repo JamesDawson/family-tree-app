@@ -1,4 +1,13 @@
 @model PersonSearchResultsViewModel
+@{
+    var (action, field) = Model.RelationshipKind switch
+    {
+        "parent" => ("AddParent", "parentId"),
+        "child" => ("AddChild", "childId"),
+        "sibling" => ("AddSibling", "siblingId"),
+        _ => ("AddSpouse", "spouseId"),
+    };
+}
 
 @if (Model.Matches.Count == 0)
 {
@@ -11,10 +20,8 @@ else
         {
             <li>
                 <button type="button"
-                        hx-post="@(Model.RelationshipKind == "parent"
-                            ? Url.Action("AddParent", new { id = Model.TargetPersonId })
-                            : Url.Action("AddSpouse", new { id = Model.TargetPersonId }))"
-                        hx-vals='{"@(Model.RelationshipKind == "parent" ? "parentId" : "spouseId")":"@person.Id"}'
+                        hx-post="@Url.Action(action, new { id = Model.TargetPersonId })"
+                        hx-vals='{"@field":"@person.Id"}'
                         hx-include="@(Model.RelationshipKind == "spouse" ? "#add-spouse-form" : null)">
                     @person.Name.DisplayName @(person.BornOn is null ? "" : $"({person.BornOn.ToDisplayString()})")
                 </button>

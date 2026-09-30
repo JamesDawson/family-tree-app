@@ -68,6 +68,88 @@ public sealed class FilePersonRepository : IPersonRepository
         }
     }
 
+    public async Task<Person> CreateRelatedAsync(Person person, RelationKind kind, string relatedToId, string? secondParentId, SpouseRelationship? spouse, CommitAuthor author, CancellationToken ct = default)
+    {
+        await _writeLock.WaitAsync(ct);
+        try
+        {
+            var related = await LoadRequiredAsync(relatedToId, ct);
+            var existingIds = LoadAllIds();
+
+            if (kind == RelationKind.Child && !string.IsNullOrWhiteSpace(secondParentId))
+            {
+                if (secondParentId == relatedToId || !existingIds.Contains(secondParentId))
+                {
+                    throw new PersonNotFoundException(secondParentId);
+                }
+            }
+
+            if (kind == RelationKind.Parent && related.ParentIds.Count >= 2)
+            {
+                throw new InvalidOperationException($"{related.Name.DisplayName} already has two parents.");
+            }
+
+            var id = PersonIdGenerator.Generate(person.Name.First, person.Name.Last, person.BornOn?.Year, existingIds.Contains);
+
+            var toSave = new Person
+            {
+                Id = id,
+                Name = person.Name,
+                Sex = person.Sex,
+                BornOn = person.BornOn,
+                BornPlace = person.BornPlace,
+                DiedOn = person.DiedOn,
+                DiedPlace = person.DiedPlace,
+                ParentIds = [],
+                Spouses = [],
+                Notes = person.Notes,
+            };
+
+            var paths = new List<string> { RelativePathFor(id) };
+
+            switch (kind)
+            {
+                case RelationKind.Child:
+                    toSave.ParentIds = string.IsNullOrWhiteSpace(secondParentId) ? [relatedToId] : [relatedToId, secondParentId];
+                    break;
+
+                case RelationKind.Sibling:
+                    toSave.ParentIds = [.. related.ParentIds];
+                    break;
+
+                case RelationKind.Parent:
+                    related.ParentIds = [.. related.ParentIds, id];
+                    await WriteFileAsync(related, ct);
+                    paths.Add(RelativePathFor(relatedToId));
+                    break;
+
+                case RelationKind.Spouse:
+                    var relationship = spouse ?? new SpouseRelationship(relatedToId, null, null, false);
+                    toSave.Spouses = [relationship with { SpouseId = relatedToId }];
+                    related.Spouses = [.. related.Spouses.Where(s => s.SpouseId != id), relationship with { SpouseId = id }];
+                    await WriteFileAsync(related, ct);
+                    paths.Add(RelativePathFor(relatedToId));
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
+            }
+
+            await WriteFileAsync(toSave, ct);
+
+            _git.CommitFiles(
+                paths,
+                $"Add {kind.ToString().ToLowerInvariant()}: {toSave.Name.DisplayName} (of {related.Name.DisplayName})",
+                author);
+
+            return toSave;
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
     public async Task<Person> UpdateAsync(Person person, CommitAuthor author, CancellationToken ct = default)
     {
         await _writeLock.WaitAsync(ct);

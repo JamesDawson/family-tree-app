@@ -12,6 +12,17 @@ public interface IPersonRepository
     /// the repository always assigns a fresh id derived from the person's name and birth year.</summary>
     Task<Person> CreateAsync(Person person, CommitAuthor author, CancellationToken ct = default);
 
+    /// <summary>Creates a new person and links them to an existing person in a single commit.
+    /// <list type="bullet">
+    /// <item>Child: the new person's parents are <paramref name="relatedToId"/> and optionally <paramref name="secondParentId"/>.</item>
+    /// <item>Sibling: the new person gets the same parents as <paramref name="relatedToId"/>.</item>
+    /// <item>Parent: the new person is added to <paramref name="relatedToId"/>'s parents (at most two).</item>
+    /// <item>Spouse: a reciprocal spouse link is written using <paramref name="spouse"/> for the dates/current flag.</item>
+    /// </list>
+    /// Throws <see cref="PersonNotFoundException"/> for an unknown related person and
+    /// <see cref="InvalidOperationException"/> if the relationship can't be formed.</summary>
+    Task<Person> CreateRelatedAsync(Person person, RelationKind kind, string relatedToId, string? secondParentId, SpouseRelationship? spouse, CommitAuthor author, CancellationToken ct = default);
+
     Task<Person> UpdateAsync(Person person, CommitAuthor author, CancellationToken ct = default);
 
     /// <summary>Deletes a person. Throws <see cref="PersonHasDependentsException"/> if anyone else still

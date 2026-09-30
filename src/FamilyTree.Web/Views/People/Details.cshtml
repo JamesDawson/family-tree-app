@@ -80,10 +80,26 @@
         <ul>
             @foreach (var child in Model.Children)
             {
-                <li><a asp-action="Details" asp-route-id="@child.Id">@child.Name.DisplayName</a></li>
+                <li>
+                    <a asp-action="Details" asp-route-id="@child.Id">@child.Name.DisplayName</a>
+                    <button type="button" class="link-button"
+                            hx-post="@Url.Action("RemoveChild", new { id = person.Id, childId = child.Id })"
+                            hx-confirm="Remove @child.Name.DisplayName as a child of @person.Name.DisplayName?">
+                        Remove
+                    </button>
+                </li>
             }
         </ul>
     }
+
+    <div class="add-relationship">
+        <input type="search" placeholder="Add an existing child…" name="q"
+               hx-get="@Url.Action("Search")"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#child-search-results"
+               hx-vals='{"personId":"@person.Id","relationshipKind":"child"}' />
+        <div id="child-search-results"></div>
+    </div>
 </section>
 
 <section>
@@ -100,10 +116,24 @@
                 <li>
                     <a asp-action="Details" asp-route-id="@sibling.Person.Id">@sibling.Person.Name.DisplayName</a>
                     @(sibling.Full ? "" : "(half)")
+                    <button type="button" class="link-button"
+                            hx-post="@Url.Action("RemoveSibling", new { id = person.Id, siblingId = sibling.Person.Id })"
+                            hx-confirm="Unlink @sibling.Person.Name.DisplayName as a sibling of @person.Name.DisplayName? They will no longer share parents.">
+                        Remove
+                    </button>
                 </li>
             }
         </ul>
     }
+
+    <div class="add-relationship">
+        <input type="search" placeholder="Add an existing sibling…" name="q"
+               hx-get="@Url.Action("Search")"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#sibling-search-results"
+               hx-vals='{"personId":"@person.Id","relationshipKind":"sibling"}' />
+        <div id="sibling-search-results"></div>
+    </div>
 </section>
 
 <section>

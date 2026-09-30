@@ -23,6 +23,24 @@ public sealed class PersonSteps(AppFixture fixture, ScenarioState state)
         state.RememberId(fullName, ExtractPersonId(location));
     }
 
+    [When(@"I add a (parent|child|sibling|spouse) ""(.*)"" born in (\d+) to ""(.*)""")]
+    public async Task AddRelativeAsync(string relation, string fullName, int birthYear, string ofName)
+    {
+        var (first, last) = SplitName(fullName);
+        var ofId = state.IdFor(ofName);
+
+        var response = await fixture.Client.PostAsync("/people", FormContent(
+            ("FirstName", first), ("LastName", last), ("BornOn", birthYear.ToString()),
+            ("Relation", relation), ("RelatedToId", ofId)));
+
+        var location = await AssertRedirectAsync(response);
+        Assert.IsTrue(location.EndsWith($"/people/{ofId}/edit", StringComparison.Ordinal), $"Expected redirect back to {ofName}'s edit page but got {location}.");
+
+        var repository = fixture.Factory.Services.GetRequiredService<IPersonRepository>();
+        var created = (await repository.GetAllAsync()).Single(p => p.Name.First == first && p.Name.Last == last);
+        state.RememberId(fullName, created.Id);
+    }
+
     [When(@"I set ""(.*)"" as a parent of ""(.*)""")]
     [Given(@"I set ""(.*)"" as a parent of ""(.*)""")]
     public async Task SetAsParentOfAsync(string parentName, string childName)
@@ -30,6 +48,46 @@ public sealed class PersonSteps(AppFixture fixture, ScenarioState state)
         var response = await fixture.Client.PostAsync(
             $"/people/{state.IdFor(childName)}/relationships/parent",
             FormContent(("parentId", state.IdFor(parentName))));
+
+        await AssertRedirectAsync(response);
+    }
+
+    [When(@"I link ""(.*)"" as an existing child of ""(.*)""")]
+    public async Task LinkExistingChildAsync(string childName, string parentName)
+    {
+        var response = await fixture.Client.PostAsync(
+            $"/people/{state.IdFor(parentName)}/relationships/child",
+            FormContent(("childId", state.IdFor(childName))));
+
+        await AssertRedirectAsync(response);
+    }
+
+    [When(@"I unlink ""(.*)"" as a child of ""(.*)""")]
+    public async Task UnlinkChildAsync(string childName, string parentName)
+    {
+        var response = await fixture.Client.PostAsync(
+            $"/people/{state.IdFor(parentName)}/relationships/child/{state.IdFor(childName)}/remove",
+            FormContent());
+
+        await AssertRedirectAsync(response);
+    }
+
+    [When(@"I link ""(.*)"" as an existing sibling of ""(.*)""")]
+    public async Task LinkExistingSiblingAsync(string siblingName, string personName)
+    {
+        var response = await fixture.Client.PostAsync(
+            $"/people/{state.IdFor(personName)}/relationships/sibling",
+            FormContent(("siblingId", state.IdFor(siblingName))));
+
+        await AssertRedirectAsync(response);
+    }
+
+    [When(@"I unlink ""(.*)"" as a sibling of ""(.*)""")]
+    public async Task UnlinkSiblingAsync(string siblingName, string personName)
+    {
+        var response = await fixture.Client.PostAsync(
+            $"/people/{state.IdFor(personName)}/relationships/sibling/{state.IdFor(siblingName)}/remove",
+            FormContent());
 
         await AssertRedirectAsync(response);
     }
@@ -97,6 +155,33 @@ public sealed class PersonSteps(AppFixture fixture, ScenarioState state)
     {
         var content = await GetDetailsPageAsync(parentName);
         Assert.IsTrue(content.Contains(childName, StringComparison.Ordinal), $"Expected {parentName}'s Details page to list {childName} as a child.\n{content}");
+    }
+
+    [Then(@"""(.*)""'s details page does not list ""(.*)"" as a child")]
+    public async Task DetailsPageDoesNotListChildAsync(string parentName, string childName)
+    {
+        var content = await GetDetailsPageAsync(parentName);
+        var start = content.IndexOf("<h2>Children</h2>", StringComparison.Ordinal);
+        var end = content.IndexOf("<h2>Siblings</h2>", StringComparison.Ordinal);
+        Assert.IsFalse(content[start..end].Contains(childName, StringComparison.Ordinal), $"Expected {parentName}'s Children section to NOT list {childName}.");
+    }
+
+    [Then(@"""(.*)""'s details page lists ""(.*)"" as a sibling")]
+    public async Task DetailsPageListsAsSiblingAsync(string name, string siblingName)
+    {
+        var content = await GetDetailsPageAsync(name);
+        var start = content.IndexOf("<h2>Siblings</h2>", StringComparison.Ordinal);
+        var end = content.IndexOf("<h2>Spouses</h2>", StringComparison.Ordinal);
+        Assert.IsTrue(content[start..end].Contains(siblingName, StringComparison.Ordinal), $"Expected {name}'s Siblings section to list {siblingName}.");
+    }
+
+    [Then(@"""(.*)""'s details page does not list ""(.*)"" as a sibling")]
+    public async Task DetailsPageDoesNotListAsSiblingAsync(string name, string siblingName)
+    {
+        var content = await GetDetailsPageAsync(name);
+        var start = content.IndexOf("<h2>Siblings</h2>", StringComparison.Ordinal);
+        var end = content.IndexOf("<h2>Spouses</h2>", StringComparison.Ordinal);
+        Assert.IsFalse(content[start..end].Contains(siblingName, StringComparison.Ordinal), $"Expected {name}'s Siblings section to NOT list {siblingName}.");
     }
 
     [Then(@"""(.*)""'s details page shows ""(.*)"" as a spouse")]

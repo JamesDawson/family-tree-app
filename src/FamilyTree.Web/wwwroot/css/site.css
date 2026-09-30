@@ -74,6 +74,23 @@ button.link-button {
   background: var(--color-danger);
 }
 
+.add-relative {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.add-relative .button {
+  margin-right: 0;
+  border: none;
+}
+
+.add-relative-label {
+  color: var(--color-muted);
+}
+
 button:disabled,
 .button:disabled,
 button.htmx-request {

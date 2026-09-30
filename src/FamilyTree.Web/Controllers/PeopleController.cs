@@ -46,8 +46,33 @@ public sealed class PeopleController(
         return View(resolved);
     }
 
+    // Optional ?relation={parent|child|sibling|spouse}&of={personId} presets the new person as a relative
+    // of an existing person (used by the "Add relative" buttons on the edit page).
     [HttpGet("new")]
-    public IActionResult Create() => View(new PersonFormModel());
+    public async Task<IActionResult> Create(string? relation, string? of, CancellationToken ct)
+    {
+        var form = new PersonFormModel();
+
+        if (!string.IsNullOrEmpty(relation) || !string.IsNullOrEmpty(of))
+        {
+            form.Relation = relation;
+            form.RelatedToId = of;
+
+            if (!await PrepareRelationContextAsync(form, ct))
+            {
+                return NotFound();
+            }
+
+            if (form.Relation == "child")
+            {
+                // Default the other parent to the current spouse, if there is one.
+                var related = await repository.GetByIdAsync(of!, ct);
+                form.SecondParentId = related!.Spouses.FirstOrDefault(s => s.Current)?.SpouseId;
+            }
+        }
+
+        return View(form);
+    }
 
     // Named explicitly: the GET (/people/new) and POST (/people) forms of "Create" share an action
     // name but have different route templates, which makes asp-action="Create" in the view ambiguous
@@ -56,14 +81,54 @@ public sealed class PeopleController(
     public async Task<IActionResult> Create(PersonFormModel form, CancellationToken ct)
     {
         var person = new Person { Id = "", Name = new PersonName("", null, "", null) };
+        var isRelative = !string.IsNullOrEmpty(form.Relation) || !string.IsNullOrEmpty(form.RelatedToId);
+
+        if (isRelative && !await PrepareRelationContextAsync(form, ct))
+        {
+            return NotFound();
+        }
+
+        SpouseRelationship? spouse = null;
+        if (isRelative && form.Relation == "spouse")
+        {
+            try
+            {
+                spouse = new SpouseRelationship(form.RelatedToId!, PartialDate.Parse(form.MarriedOn), PartialDate.Parse(form.DivorcedOn), form.CurrentSpouse);
+            }
+            catch (FormatException ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+        }
 
         if (!TryApplyFormToPerson(form, person))
         {
             return View(form);
         }
 
-        var created = await repository.CreateAsync(person, commitAuthorProvider.Current, ct);
-        return RedirectAfterSave(Url.Action(nameof(Details), new { id = created.Id })!);
+        if (!isRelative)
+        {
+            var created = await repository.CreateAsync(person, commitAuthorProvider.Current, ct);
+            return RedirectAfterSave(Url.Action(nameof(Details), new { id = created.Id })!);
+        }
+
+        try
+        {
+            await repository.CreateRelatedAsync(
+                person, ParseRelation(form.Relation)!.Value, form.RelatedToId!, form.SecondParentId, spouse, commitAuthorProvider.Current, ct);
+        }
+        catch (InvalidOperationException ex)
+        {
+            ModelState.AddModelError("", ex.Message);
+            return View(form);
+        }
+        catch (PersonNotFoundException)
+        {
+            return NotFound();
+        }
+
+        // Back to the person we started from so several relatives can be added in a row.
+        return RedirectAfterSave(Url.Action(nameof(Edit), new { id = form.RelatedToId })!);
     }
 
     [HttpGet("{id}/edit")]
@@ -76,6 +141,7 @@ public sealed class PeopleController(
         }
 
         ViewData["PersonId"] = id;
+        ViewData["ParentCount"] = person.ParentIds.Count;
         return View(ToFormModel(person));
     }
 
@@ -89,6 +155,8 @@ public sealed class PeopleController(
         {
             return NotFound();
         }
+
+        ViewData["ParentCount"] = existing.ParentIds.Count;
 
         if (!TryApplyFormToPerson(form, existing))
         {
@@ -172,6 +240,134 @@ public sealed class PeopleController(
         return RedirectAfterSave(Url.Action(nameof(Details), new { id })!);
     }
 
+    // A child link is stored on the child's file (as a parent id), so this updates the child, not {id}.
+    [HttpPost("{id}/relationships/child")]
+    public async Task<IActionResult> AddChild(string id, [FromForm] string childId, CancellationToken ct)
+    {
+        var parent = await repository.GetByIdAsync(id, ct);
+        if (parent is null)
+        {
+            return NotFound();
+        }
+
+        if (string.IsNullOrWhiteSpace(childId) || childId == id)
+        {
+            return RedirectAfterSave(Url.Action(nameof(Details), new { id })!);
+        }
+
+        var child = await repository.GetByIdAsync(childId, ct);
+        if (child is null)
+        {
+            return NotFound();
+        }
+
+        if (child.ParentIds.Contains(id))
+        {
+            // Already linked.
+        }
+        else if (child.ParentIds.Count >= 2)
+        {
+            TempData["DeleteError"] = $"{child.Name.DisplayName} already has two parents.";
+        }
+        else
+        {
+            child.ParentIds = [.. child.ParentIds, id];
+            await repository.UpdateAsync(child, commitAuthorProvider.Current, ct);
+        }
+
+        return RedirectAfterSave(Url.Action(nameof(Details), new { id })!);
+    }
+
+    [HttpPost("{id}/relationships/child/{childId}/remove")]
+    public async Task<IActionResult> RemoveChild(string id, string childId, CancellationToken ct)
+    {
+        var child = await repository.GetByIdAsync(childId, ct);
+        if (child is null)
+        {
+            return NotFound();
+        }
+
+        if (child.ParentIds.Contains(id))
+        {
+            child.ParentIds = [.. child.ParentIds.Where(p => p != id)];
+            await repository.UpdateAsync(child, commitAuthorProvider.Current, ct);
+        }
+
+        return RedirectAfterSave(Url.Action(nameof(Details), new { id })!);
+    }
+
+    // Siblings are derived from shared parents, so linking an existing sibling copies this person's parents
+    // onto the sibling's file (up to two parents in total). Someone who already shares a parent is left alone.
+    [HttpPost("{id}/relationships/sibling")]
+    public async Task<IActionResult> AddSibling(string id, [FromForm] string siblingId, CancellationToken ct)
+    {
+        var person = await repository.GetByIdAsync(id, ct);
+        if (person is null)
+        {
+            return NotFound();
+        }
+
+        var details = RedirectAfterSave(Url.Action(nameof(Details), new { id })!);
+
+        if (string.IsNullOrWhiteSpace(siblingId) || siblingId == id)
+        {
+            return details;
+        }
+
+        var sibling = await repository.GetByIdAsync(siblingId, ct);
+        if (sibling is null)
+        {
+            return NotFound();
+        }
+
+        if (person.ParentIds.Count == 0)
+        {
+            TempData["DeleteError"] = $"{person.Name.DisplayName} has no parents recorded yet — add a parent first so the sibling can share them.";
+            return details;
+        }
+
+        if (sibling.ParentIds.Intersect(person.ParentIds).Any())
+        {
+            return details;
+        }
+
+        var toAdd = person.ParentIds.Take(2 - sibling.ParentIds.Count).ToList();
+        if (toAdd.Count == 0)
+        {
+            TempData["DeleteError"] = $"{sibling.Name.DisplayName} already has two other parents.";
+            return details;
+        }
+
+        sibling.ParentIds = [.. sibling.ParentIds, .. toAdd];
+        await repository.UpdateAsync(sibling, commitAuthorProvider.Current, ct);
+
+        if (toAdd.Count < person.ParentIds.Count)
+        {
+            TempData["DeleteError"] = $"{sibling.Name.DisplayName} already had a parent, so they're now a half-sibling.";
+        }
+
+        return details;
+    }
+
+    [HttpPost("{id}/relationships/sibling/{siblingId}/remove")]
+    public async Task<IActionResult> RemoveSibling(string id, string siblingId, CancellationToken ct)
+    {
+        var person = await repository.GetByIdAsync(id, ct);
+        var sibling = await repository.GetByIdAsync(siblingId, ct);
+        if (person is null || sibling is null)
+        {
+            return NotFound();
+        }
+
+        if (sibling.ParentIds.Intersect(person.ParentIds).Any())
+        {
+            sibling.ParentIds = [.. sibling.ParentIds.Except(person.ParentIds)];
+            await repository.UpdateAsync(sibling, commitAuthorProvider.Current, ct);
+        }
+
+        return RedirectAfterSave(Url.Action(nameof(Details), new { id })!);
+    }
+
     [HttpPost("{id}/relationships/spouse")]
     public async Task<IActionResult> AddSpouse(string id, [FromForm] string spouseId, [FromForm] string? marriedOn, [FromForm] string? divorcedOn, [FromForm] bool current, CancellationToken ct)
     {
@@ -232,6 +428,52 @@ public sealed class PeopleController(
 
         var all = await repository.GetAllAsync(ct);
         return View(new PersonTreeViewModel { Root = person, ById = all.ToDictionary(p => p.Id) });
+    }
+
+    private static RelationKind? ParseRelation(string? value) => value?.ToLowerInvariant() switch
+    {
+        "parent" => RelationKind.Parent,
+        "child" => RelationKind.Child,
+        "sibling" => RelationKind.Sibling,
+        "spouse" => RelationKind.Spouse,
+        _ => null,
+    };
+
+    /// <summary>Validates the relation/related-person on the form and fills in the ViewData the Create view
+    /// needs (related person, label, other-parent choices). Returns false if either is missing or unknown.</summary>
+    private async Task<bool> PrepareRelationContextAsync(PersonFormModel form, CancellationToken ct)
+    {
+        var kind = ParseRelation(form.Relation);
+        if (kind is null || string.IsNullOrWhiteSpace(form.RelatedToId))
+        {
+            return false;
+        }
+
+        var related = await repository.GetByIdAsync(form.RelatedToId, ct);
+        if (related is null)
+        {
+            return false;
+        }
+
+        form.Relation = kind.Value.ToString().ToLowerInvariant();
+        ViewData["RelatedPerson"] = related;
+
+        if (kind == RelationKind.Child)
+        {
+            var spouses = new List<Person>();
+            foreach (var s in related.Spouses)
+            {
+                var spouse = await repository.GetByIdAsync(s.SpouseId, ct);
+                if (spouse is not null)
+                {
+                    spouses.Add(spouse);
+                }
+            }
+
+            ViewData["SpouseChoices"] = spouses;
+        }
+
+        return true;
     }
 
     private bool TryApplyFormToPerson(PersonFormModel form, Person person)

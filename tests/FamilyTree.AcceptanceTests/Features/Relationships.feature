@@ -31,3 +31,42 @@ Scenario: Deleting a person who is referenced elsewhere is blocked
     When I attempt to delete "John Doe"
     Then the deletion is blocked
     And "John Doe" still exists
+
+Scenario: Adding a child from a person's edit page creates and links them in one commit
+    Given a person "John Doe" born in 1920 exists
+    When I add a child "Jane Doe" born in 1952 to "John Doe"
+    Then "John Doe"'s details page lists "Jane Doe" as a child
+    And "John Doe" has exactly 1 commit
+    And "Jane Doe" has exactly 1 commit
+
+Scenario: Adding a spouse from a person's edit page links both files
+    Given a person "Robert Doe" born in 1950 exists
+    When I add a spouse "Jane Smith" born in 1952 to "Robert Doe"
+    Then "Robert Doe"'s details page shows "Jane Smith" as a spouse
+    And "Jane Smith"'s details page shows "Robert Doe" as a spouse
+    And "Robert Doe" has exactly 2 commits
+    And "Jane Smith" has exactly 1 commit
+
+Scenario: Linking an existing child from the parent's details page, then unlinking
+    Given a person "John Doe" born in 1920 exists
+    And a person "Jane Doe" born in 1952 exists
+    When I link "Jane Doe" as an existing child of "John Doe"
+    Then "John Doe"'s details page lists "Jane Doe" as a child
+    And "John Doe" has exactly 1 commit
+    And "Jane Doe" has exactly 2 commits
+    When I unlink "Jane Doe" as a child of "John Doe"
+    Then "John Doe"'s details page does not list "Jane Doe" as a child
+
+Scenario: Linking an existing sibling copies the parents onto them, then unlinking removes them
+    Given a person "John Doe" born in 1920 exists
+    And a person "Jane Doe" born in 1952 exists
+    And a person "Jim Doe" born in 1955 exists
+    And I set "John Doe" as a parent of "Jane Doe"
+    When I link "Jim Doe" as an existing sibling of "Jane Doe"
+    Then "Jane Doe"'s details page lists "Jim Doe" as a sibling
+    And "Jim Doe"'s details page lists "Jane Doe" as a sibling
+    And "John Doe" has exactly 1 commit
+    And "Jane Doe" has exactly 2 commits
+    And "Jim Doe" has exactly 2 commits
+    When I unlink "Jim Doe" as a sibling of "Jane Doe"
+    Then "Jane Doe"'s details page does not list "Jim Doe" as a sibling

@@ -1,8 +1,44 @@
+@using FamilyTree.Data.Models
 @model PersonFormModel
 
 @* asp-validation-summary overwrites this element's class itself (validation-summary-valid /
    validation-summary-errors), so no class is set here — see site.css. *@
 <div asp-validation-summary="All"></div>
+
+@* Relationship context, present only when adding a relative of an existing person (Create form). *@
+@if (!string.IsNullOrEmpty(Model.Relation))
+{
+    <input type="hidden" asp-for="Relation" />
+    <input type="hidden" asp-for="RelatedToId" />
+
+    if (Model.Relation == "child" && ViewData["SpouseChoices"] is List<Person> spouseChoices && spouseChoices.Count > 0)
+    {
+        <div class="form-field">
+            <label asp-for="SecondParentId"></label>
+            <select asp-for="SecondParentId">
+                <option value="">None / unknown</option>
+                @foreach (var s in spouseChoices)
+                {
+                    <option value="@s.Id" selected="@(s.Id == Model.SecondParentId)">@s.Name.DisplayName</option>
+                }
+            </select>
+        </div>
+    }
+    else if (Model.Relation == "spouse")
+    {
+        <div class="form-field">
+            <label asp-for="MarriedOn"></label>
+            <partial name="_DateInput" model="@(nameof(Model.MarriedOn), Model.MarriedOn, "e.g. 15-Jun-2001, 2001", (string?)null)" />
+        </div>
+        <div class="form-field">
+            <label asp-for="DivorcedOn"></label>
+            <partial name="_DateInput" model="@(nameof(Model.DivorcedOn), Model.DivorcedOn, "e.g. 02-Nov-2010", (string?)null)" />
+        </div>
+        <div class="form-field">
+            <label><input type="checkbox" asp-for="CurrentSpouse" /> Current spouse</label>
+        </div>
+    }
+}
 
 <div class="form-field">
     <label asp-for="FirstName"></label>

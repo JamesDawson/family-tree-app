@@ -1,10 +1,34 @@
 @model PersonFormModel
 @{
     ViewData["Title"] = $"Edit {Model.FirstName} {Model.LastName}";
+    var personId = ViewData["PersonId"];
+    var parentCount = ViewData["ParentCount"] as int? ?? 0;
 }
 
 <h1>Edit @Model.FirstName @Model.LastName</h1>
 
-<form asp-action="Edit" asp-route-id="@ViewData["PersonId"]" method="post" hx-disabled-elt="find button[type=submit]">
+<div class="add-relative">
+    <span class="add-relative-label">Add:</span>
+    @if (parentCount < 2)
+    {
+        <a class="button" asp-action="Create" asp-route-relation="parent" asp-route-of="@personId">Parent</a>
+    }
+    else
+    {
+        <button type="button" class="button" disabled title="Already has two parents">Parent</button>
+    }
+    <a class="button" asp-action="Create" asp-route-relation="child" asp-route-of="@personId">Child</a>
+    @if (parentCount > 0)
+    {
+        <a class="button" asp-action="Create" asp-route-relation="sibling" asp-route-of="@personId">Sibling</a>
+    }
+    else
+    {
+        <button type="button" class="button" disabled title="Add a parent first so siblings can share them">Sibling</button>
+    }
+    <a class="button" asp-action="Create" asp-route-relation="spouse" asp-route-of="@personId">Spouse</a>
+</div>
+
+<form asp-action="Edit" asp-route-id="@personId" method="post" hx-disabled-elt="find button[type=submit]">
     <partial name="_PersonForm" />
 </form>

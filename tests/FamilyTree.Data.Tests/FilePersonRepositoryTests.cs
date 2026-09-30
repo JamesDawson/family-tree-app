@@ -122,6 +122,68 @@ public class FilePersonRepositoryTests
     }
 
     [TestMethod]
+    public async Task CreateRelatedAsync_Child_SetsBothParentsInOneCommit()
+    {
+        var dad = await _repository.CreateAsync(NewPerson("Robert", "Doe", 1950), Author);
+        var mum = await _repository.CreateAsync(NewPerson("Jane", "Doe", 1952), Author);
+
+        var child = await _repository.CreateRelatedAsync(NewPerson("Kid", "Doe", 1980), RelationKind.Child, dad.Id, mum.Id, null, Author);
+
+        CollectionAssert.AreEqual(new[] { dad.Id, mum.Id }, child.ParentIds.ToArray());
+        Assert.AreEqual(1, (await _repository.GetHistoryAsync(child.Id)).Count);
+        Assert.AreEqual(1, (await _repository.GetHistoryAsync(dad.Id)).Count, "Parent's file must not change.");
+    }
+
+    [TestMethod]
+    public async Task CreateRelatedAsync_Sibling_CopiesParents()
+    {
+        var dad = await _repository.CreateAsync(NewPerson("Robert", "Doe", 1950), Author);
+        var first = await _repository.CreateRelatedAsync(NewPerson("Kid", "Doe", 1980), RelationKind.Child, dad.Id, null, null, Author);
+
+        var sibling = await _repository.CreateRelatedAsync(NewPerson("Sis", "Doe", 1982), RelationKind.Sibling, first.Id, null, null, Author);
+
+        CollectionAssert.AreEqual(new[] { dad.Id }, sibling.ParentIds.ToArray());
+    }
+
+    [TestMethod]
+    public async Task CreateRelatedAsync_Parent_AddsToChildAndEnforcesMaxTwo()
+    {
+        var child = await _repository.CreateAsync(NewPerson("Kid", "Doe", 1980), Author);
+
+        var p1 = await _repository.CreateRelatedAsync(NewPerson("Robert", "Doe", 1950), RelationKind.Parent, child.Id, null, null, Author);
+        var p2 = await _repository.CreateRelatedAsync(NewPerson("Jane", "Doe", 1952), RelationKind.Parent, child.Id, null, null, Author);
+
+        var reloaded = await _repository.GetByIdAsync(child.Id);
+        CollectionAssert.AreEqual(new[] { p1.Id, p2.Id }, reloaded!.ParentIds.ToArray());
+        Assert.AreEqual(3, (await _repository.GetHistoryAsync(child.Id)).Count, "Create + one commit per added parent.");
+
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            () => _repository.CreateRelatedAsync(NewPerson("Third", "Doe", 1955), RelationKind.Parent, child.Id, null, null, Author));
+    }
+
+    [TestMethod]
+    public async Task CreateRelatedAsync_Spouse_LinksBothPeopleInOneCommit()
+    {
+        var a = await _repository.CreateAsync(NewPerson("Robert", "Doe", 1950), Author);
+
+        var b = await _repository.CreateRelatedAsync(
+            NewPerson("Jane", "Smith", 1952), RelationKind.Spouse, a.Id, null, new SpouseRelationship("", new PartialDate(1974, 6, 2), null, true), Author);
+
+        var reloadedA = await _repository.GetByIdAsync(a.Id);
+        Assert.AreEqual(b.Id, reloadedA!.Spouses.Single().SpouseId);
+        Assert.AreEqual(a.Id, b.Spouses.Single().SpouseId);
+        Assert.AreEqual(2, (await _repository.GetHistoryAsync(a.Id)).Count);
+        Assert.AreEqual(1, (await _repository.GetHistoryAsync(b.Id)).Count);
+    }
+
+    [TestMethod]
+    public async Task CreateRelatedAsync_UnknownRelatedPerson_Throws()
+    {
+        await Assert.ThrowsExactlyAsync<PersonNotFoundException>(
+            () => _repository.CreateRelatedAsync(NewPerson("Kid", "Doe", 1980), RelationKind.Child, "nobody-1900", null, null, Author));
+    }
+
+    [TestMethod]
     public async Task AddSpouseRelationshipAsync_LinksBothPeopleInASingleCommitEach()
     {
         var personA = await _repository.CreateAsync(NewPerson("Robert", "Doe", 1950), Author);

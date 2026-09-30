@@ -1,9 +1,12 @@
+@using FamilyTree.Data.Models
 @model PersonFormModel
 @{
-    ViewData["Title"] = "Add person";
+    var related = ViewData["RelatedPerson"] as Person;
+    var heading = related is null ? "Add person" : $"Add {Model.Relation} of {related.Name.DisplayName}";
+    ViewData["Title"] = heading;
 }
 
-<h1>Add person</h1>
+<h1>@heading</h1>
 
 <form asp-route="PeopleCreate" method="post" hx-disabled-elt="find button[type=submit]">
     <partial name="_PersonForm" />
