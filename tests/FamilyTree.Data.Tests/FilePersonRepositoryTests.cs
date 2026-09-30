@@ -247,6 +247,45 @@ public class FilePersonRepositoryTests
         Assert.AreEqual(3, history.Count, "Expected create + 2 serialized updates.");
     }
 
+    [TestMethod]
+    public async Task GetAllAsync_ServesTheSameSnapshotUntilDataChanges()
+    {
+        await _repository.CreateAsync(NewPerson("John", "Doe", 1920), Author);
+
+        var first = await _repository.GetAllAsync();
+        var second = await _repository.GetAllAsync();
+
+        Assert.AreSame(first, second);
+    }
+
+    [TestMethod]
+    public async Task GetAllAsync_ReflectsWritesMadeThroughTheRepository()
+    {
+        var created = await _repository.CreateAsync(NewPerson("John", "Doe", 1920), Author);
+        Assert.AreEqual(1, (await _repository.GetAllAsync()).Count);
+
+        await _repository.CreateAsync(NewPerson("Jane", "Doe", 1922), Author);
+        Assert.AreEqual(2, (await _repository.GetAllAsync()).Count);
+
+        var person = (await _repository.GetByIdAsync(created.Id))!;
+        person.BornPlace = "Leeds";
+        await _repository.UpdateAsync(person, Author);
+        Assert.AreEqual("Leeds", (await _repository.GetAllAsync()).Single(p => p.Id == created.Id).BornPlace);
+    }
+
+    [TestMethod]
+    public async Task GetAllAsync_PicksUpFilesChangedOutsideTheRepository()
+    {
+        var created = await _repository.CreateAsync(NewPerson("John", "Doe", 1920), Author);
+        Assert.AreEqual(1, (await _repository.GetAllAsync()).Count);
+
+        // Simulates a git pull or a hand edit: a new file appears without going through the repository.
+        var path = Path.Combine(_tempRoot, "people", $"{created.Id}.md");
+        File.Copy(path, Path.Combine(_tempRoot, "people", "copy-1999.md"));
+
+        Assert.AreEqual(2, (await _repository.GetAllAsync()).Count);
+    }
+
     private async Task UpdateBornPlaceAsync(string id, string place)
     {
         var person = (await _repository.GetByIdAsync(id))!;

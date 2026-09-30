@@ -13,6 +13,15 @@ public sealed class FilePersonRepository : IPersonRepository
     private readonly IPersonFileSerializer _serializer;
     private readonly SemaphoreSlim _writeLock = new(1, 1);
 
+    // Parsing every people/*.md on every request doesn't scale, so GetAllAsync serves a snapshot. The
+    // snapshot is dropped on every write made through this class, and is also re-validated against a cheap
+    // fingerprint of the directory (file names, sizes, mtimes) so out-of-band changes — a git pull, a
+    // hand edit — are picked up too. Person instances in a snapshot are shared between callers: treat them
+    // as read-only (use GetByIdAsync for an instance you intend to modify).
+    private volatile Snapshot? _snapshot;
+
+    private sealed record Snapshot(long Fingerprint, IReadOnlyList<Person> People);
+
     public FilePersonRepository(FamilyTreeDataPaths paths, IGitRepositoryService git, IPersonFileSerializer serializer)
     {
         _paths = paths;
@@ -21,7 +30,19 @@ public sealed class FilePersonRepository : IPersonRepository
         Directory.CreateDirectory(_paths.PeopleDirectory);
     }
 
-    public async Task<IReadOnlyList<Person>> GetAllAsync(CancellationToken ct = default) => await LoadAllAsync(ct);
+    public async Task<IReadOnlyList<Person>> GetAllAsync(CancellationToken ct = default)
+    {
+        var fingerprint = ComputeFingerprint();
+        var cached = _snapshot;
+        if (cached is not null && cached.Fingerprint == fingerprint)
+        {
+            return cached.People;
+        }
+
+        var people = await LoadAllAsync(ct);
+        _snapshot = new Snapshot(fingerprint, people);
+        return people;
+    }
 
     public async Task<Person?> GetByIdAsync(string id, CancellationToken ct = default)
     {
@@ -64,6 +85,7 @@ public sealed class FilePersonRepository : IPersonRepository
         }
         finally
         {
+            InvalidateSnapshot();
             _writeLock.Release();
         }
     }
@@ -167,6 +189,7 @@ public sealed class FilePersonRepository : IPersonRepository
         }
         finally
         {
+            InvalidateSnapshot();
             _writeLock.Release();
         }
     }
@@ -193,6 +216,7 @@ public sealed class FilePersonRepository : IPersonRepository
         }
         finally
         {
+            InvalidateSnapshot();
             _writeLock.Release();
         }
     }
@@ -218,6 +242,7 @@ public sealed class FilePersonRepository : IPersonRepository
         }
         finally
         {
+            InvalidateSnapshot();
             _writeLock.Release();
         }
     }
@@ -243,6 +268,7 @@ public sealed class FilePersonRepository : IPersonRepository
         }
         finally
         {
+            InvalidateSnapshot();
             _writeLock.Release();
         }
     }
@@ -262,8 +288,26 @@ public sealed class FilePersonRepository : IPersonRepository
         }
         finally
         {
+            InvalidateSnapshot();
             _writeLock.Release();
         }
+    }
+
+    // Called from each write's finally block: files may already have changed even if the commit threw.
+    private void InvalidateSnapshot() => _snapshot = null;
+
+    private long ComputeFingerprint()
+    {
+        // Order-insensitive so it doesn't depend on directory enumeration order.
+        long sum = 0;
+        var count = 0;
+        foreach (var file in new DirectoryInfo(_paths.PeopleDirectory).EnumerateFiles("*.md"))
+        {
+            sum += HashCode.Combine(file.Name, file.LastWriteTimeUtc.Ticks, file.Length);
+            count++;
+        }
+
+        return HashCode.Combine(sum, count);
     }
 
     private string FullPathFor(string id) => Path.Combine(_paths.PeopleDirectory, $"{id}.md");

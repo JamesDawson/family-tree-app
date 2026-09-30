@@ -1,0 +1,43 @@
+@model PersonGraphViewModel
+@{
+    ViewData["Title"] = $"Family graph — {Model.Person.Name.DisplayName}";
+}
+
+<div class="graph-page">
+    <div class="graph-toolbar">
+        <a asp-action="Details" asp-route-id="@Model.Person.Id">&larr; @Model.Person.Name.DisplayName</a>
+
+        <label>Ancestors
+            <select data-graph-up aria-label="Generations of ancestors to show">
+                @for (var i = 0; i <= 6; i++)
+                {
+                    <option value="@i" selected="@(i == PersonGraphViewModel.DefaultAncestors)">@i</option>
+                }
+            </select>
+        </label>
+        <label>Descendants
+            <select data-graph-down aria-label="Generations of descendants to show">
+                @for (var i = 0; i <= 6; i++)
+                {
+                    <option value="@i" selected="@(i == PersonGraphViewModel.DefaultDescendants)">@i</option>
+                }
+            </select>
+        </label>
+        <button type="button" class="button" data-graph-fit>Fit to screen</button>
+        <a asp-action="Tree" asp-route-id="@Model.Person.Id">Ancestor list</a>
+    </div>
+
+    <p class="graph-status" data-graph-status role="status" aria-live="polite">Loading…</p>
+
+    @* Scripts and styles are loaded on demand by graph.js, so pages without a graph don't pay for d3. *@
+    <div class="f3 f3-cont graph-canvas"
+         data-family-graph
+         data-person-id="@Model.Person.Id"
+         data-data-url="@Url.Action("GraphData", new { id = "__ID__" })"
+         data-scripts="@Url.Content("~/lib/d3/d3.min.js")|@Url.Content("~/lib/family-chart/family-chart.min.js")"
+         data-styles="@Url.Content("~/lib/family-chart/family-chart.css")"></div>
+
+    <noscript>
+        <p>The interactive graph needs JavaScript. Use the <a asp-action="Tree" asp-route-id="@Model.Person.Id">ancestor list</a> instead.</p>
+    </noscript>
+</div>

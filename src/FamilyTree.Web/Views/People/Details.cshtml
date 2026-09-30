@@ -14,6 +14,7 @@
 <p class="actions">
     <a class="button" asp-action="Edit" asp-route-id="@person.Id">Edit</a>
     <a class="button" asp-action="History" asp-route-id="@person.Id">History</a>
+    <a class="button" asp-action="Graph" asp-route-id="@person.Id">Family graph</a>
     <a class="button" asp-action="Tree" asp-route-id="@person.Id">Ancestor tree</a>
     <button type="button" class="button danger"
             hx-post="@Url.Action("Delete", new { id = person.Id })"

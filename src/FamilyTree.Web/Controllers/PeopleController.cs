@@ -11,6 +11,7 @@ namespace FamilyTree.Web.Controllers;
 public sealed class PeopleController(
     IPersonRepository repository,
     IRelationshipResolver relationshipResolver,
+    IFamilyGraphBuilder familyGraphBuilder,
     ICommitAuthorProvider commitAuthorProvider) : HtmxController
 {
     [HttpGet("")]
@@ -428,6 +429,79 @@ public sealed class PeopleController(
 
         var all = await repository.GetAllAsync(ct);
         return View(new PersonTreeViewModel { Root = person, ById = all.ToDictionary(p => p.Id) });
+    }
+	
+	    [HttpGet("{id}/graph")]
+    public async Task<IActionResult> Graph(string id, CancellationToken ct)
+    {
+        var person = await repository.GetByIdAsync(id, ct);
+        if (person is null)
+        {
+            return NotFound();
+        }
+
+        return View(new PersonGraphViewModel { Person = person });
+    }
+
+    /// <summary>The slice of the family graph the chart renders, in family-chart's data shape. Only the
+    /// requested number of generations is returned so payload and DOM size stay bounded however large the
+    /// archive grows; the client asks again (with a new focus) as the user explores.</summary>
+    [HttpGet("{id}/graph/data")]
+    public async Task<IActionResult> GraphData(string id, int? up, int? down, CancellationToken ct)
+    {
+        var all = await repository.GetAllAsync(ct);
+        var graph = familyGraphBuilder.Build(
+            id,
+            Math.Clamp(up ?? PersonGraphViewModel.DefaultAncestors, 0, PersonGraphViewModel.MaxGenerations),
+            Math.Clamp(down ?? PersonGraphViewModel.DefaultDescendants, 0, PersonGraphViewModel.MaxGenerations),
+            all);
+
+        if (graph is null)
+        {
+            return NotFound();
+        }
+
+        return Json(graph.Nodes.Select(ToChartDatum));
+    }
+
+    private FamilyChartDatum ToChartDatum(FamilyGraph.Node node)
+    {
+        var person = node.Person;
+        return new FamilyChartDatum
+        {
+            Id = person.Id,
+            Data = new Dictionary<string, object?>
+            {
+                // family-chart only knows M/F; the real value is kept in "sex" so the card can style unknowns neutrally.
+                ["gender"] = person.Sex == Sex.Female ? "F" : "M",
+                ["sex"] = person.Sex.ToString().ToLowerInvariant(),
+                ["name"] = person.Name.DisplayName,
+                ["lifespan"] = FormatLifespan(person),
+                ["url"] = Url.Action(nameof(Details), new { id = person.Id }),
+                ["hiddenParents"] = node.HiddenParentCount,
+                ["hiddenChildren"] = node.HiddenChildCount,
+            },
+            Rels = new FamilyChartRels
+            {
+                Parents = node.ParentIds,
+                Spouses = node.SpouseIds,
+                Children = node.ChildIds,
+            },
+        };
+    }
+
+    private static string FormatLifespan(Person person)
+    {
+        if (person.BornOn is null && person.DiedOn is null)
+        {
+            return "";
+        }
+
+        return $"{FormatYear(person.BornOn)}–{FormatYear(person.DiedOn)}";
+
+        static string FormatYear(PartialDate? date) => date is null
+            ? ""
+            : date.Qualifier is DateQualifier.About or DateQualifier.Estimated ? $"c. {date.Year}" : date.Year.ToString();
     }
 
     private static RelationKind? ParseRelation(string? value) => value?.ToLowerInvariant() switch

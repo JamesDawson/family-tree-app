@@ -362,3 +362,106 @@ textarea {
 .recent-changes li {
   padding: 0.3rem 0;
 }
+
+/* Family graph. family-chart's stylesheet is loaded on demand by graph.js; these rules re-theme it to the
+   site palette and let the page use the full viewport instead of the 60rem reading column. */
+.site-main:has(.graph-page) {
+  max-width: none;
+  padding: 0.75rem;
+}
+
+.graph-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.graph-toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.graph-status {
+  margin: 0.25rem 0;
+  color: var(--color-muted);
+}
+
+.graph-canvas.f3.f3-cont {
+  --background-color: var(--color-bg);
+  --text-color: var(--color-text);
+  --male-color: #c9d9df;
+  --female-color: #e6cdd1;
+  --genderless-color: #e4ddd5;
+  height: calc(100vh - 11rem);
+  height: calc(100dvh - 11rem);
+  min-height: 20rem;
+  max-height: none;
+  border: 1px solid var(--color-border);
+  border-radius: 0.3rem;
+  overflow: hidden;
+  /* The chart handles its own pan/pinch; stop the browser scrolling or zooming the page instead. */
+  touch-action: none;
+}
+
+.graph-canvas div.card-inner.graph-card {
+  position: relative;
+  width: 170px;
+  min-height: 70px;
+  padding: 0.35rem 0.5rem;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.graph-canvas .card-main div.card-inner.graph-card {
+  border: 2px solid var(--color-accent);
+}
+
+.graph-canvas div.card-inner.graph-card.graph-sex-unknown {
+  background-color: var(--genderless-color);
+}
+
+.graph-card-name {
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.graph-card-name:hover,
+.graph-card-name:focus-visible {
+  text-decoration: underline;
+}
+
+.graph-card-dates {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.graph-more {
+  position: absolute;
+  top: 0.15rem;
+  right: 0.15rem;
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  border-radius: 1rem;
+  padding: 0 0.4rem;
+  font-size: 0.75rem;
+}
+
+.graph-canvas .link {
+  stroke: var(--color-muted);
+}
+
+@media (max-width: 40rem) {
+  .graph-toolbar select,
+  .graph-toolbar .button {
+    min-height: 2.75rem;
+  }
+
+  .graph-toolbar a {
+    padding: 0.5rem 0;
+  }
+}

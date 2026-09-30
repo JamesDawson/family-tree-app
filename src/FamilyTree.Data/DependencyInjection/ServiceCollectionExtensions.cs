@@ -29,6 +29,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IGitRepositoryService, LibGit2GitRepositoryService>();
         services.AddSingleton<IPersonFileSerializer, YamlFrontMatterPersonSerializer>();
         services.AddSingleton<IRelationshipResolver, RelationshipGraphResolver>();
+        services.AddSingleton<IFamilyGraphBuilder, FamilyGraphBuilder>();
         services.AddSingleton<IPersonRepository, FilePersonRepository>();
 
         return services;
