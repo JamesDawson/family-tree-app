@@ -72,6 +72,27 @@ public sealed class FamilyGraphTests : PageTest
     }
 
     [TestMethod]
+    public async Task GraphCard_ShowsMaidenNameOnlyWhenPresent()
+    {
+        using var content = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["FirstName"] = "Jane",
+            ["LastName"] = "Smith",
+            ["MaidenName"] = "Jones",
+            ["BornOn"] = "1950",
+        });
+        var response = await _http.PostAsync($"{_app.BaseUrl}/people", content);
+        var janeId = response.Headers.Location!.ToString().Trim('/').Split('/')[1];
+        var childId = await CreatePersonAsync("Charlie", "Smith", "1980");
+        await LinkParentAsync(childId, janeId);
+
+        await Page.GotoAsync($"{_app.BaseUrl}/people/{childId}/graph");
+
+        await Expect(Page.Locator(".card", new() { HasText = "Jane Smith" }).Locator(".graph-card-maiden")).ToHaveTextAsync("(née Jones)");
+        await Expect(Page.Locator(".card-main .graph-card-maiden")).ToHaveCountAsync(0);
+    }
+
+    [TestMethod]
     public async Task GraphData_HonoursGenerationLimitsAndReportsHiddenRelatives()
     {
         var (parentId, childId) = await CreateParentAndChildAsync();
@@ -111,7 +132,8 @@ public sealed class FamilyGraphTests : PageTest
         await Page.GotoAsync($"{_app.BaseUrl}/people/{childId}");
         await Page.EvaluateAsync("window.__marker = 'still-here'");
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Family graph" }).ClickAsync();
+        // Scoped to the page content: the site header's brand link is also called "Family Tree".
+        await Page.Locator("#main-content").GetByRole(AriaRole.Link, new() { Name = "Family Tree", Exact = true }).ClickAsync();
 
         await Expect(Page.Locator(".graph-card-name", new() { HasText = "Alice Smith" })).ToBeVisibleAsync();
         Assert.AreEqual("still-here", await Page.EvaluateAsync<string?>("window.__marker"));

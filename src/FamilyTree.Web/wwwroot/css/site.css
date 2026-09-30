@@ -435,6 +435,7 @@ textarea {
   text-decoration: underline;
 }
 
+.graph-card-maiden,
 .graph-card-dates {
   font-size: 0.8rem;
   color: var(--color-muted);

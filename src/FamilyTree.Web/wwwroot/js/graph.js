@@ -80,6 +80,7 @@
       return (
         '<div class="card-inner card-rect graph-card graph-sex-' + escapeHtml(person.sex) + '">' +
         '<a class="graph-card-name" href="' + escapeHtml(person.url) + '">' + escapeHtml(person.name) + "</a>" +
+        (person.maidenName ? '<div class="graph-card-maiden">(née ' + escapeHtml(person.maidenName) + ")</div>" : "") +
         (person.lifespan ? '<div class="graph-card-dates">' + escapeHtml(person.lifespan) + "</div>" : "") +
         more +
         "</div>"

@@ -476,6 +476,7 @@ public sealed class PeopleController(
                 ["gender"] = person.Sex == Sex.Female ? "F" : "M",
                 ["sex"] = person.Sex.ToString().ToLowerInvariant(),
                 ["name"] = person.Name.DisplayName,
+                ["maidenName"] = person.Name.MaidenName,
                 ["lifespan"] = FormatLifespan(person),
                 ["url"] = Url.Action(nameof(Details), new { id = person.Id }),
                 ["hiddenParents"] = node.HiddenParentCount,
