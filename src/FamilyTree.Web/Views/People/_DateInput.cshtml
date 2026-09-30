@@ -1,10 +1,13 @@
 @* Text input for DD-MON-YYYY (also partial dates and qualifiers such as "abt 1952") plus a calendar button
    that opens the device's native date picker; site.js copies the picked date into the text input.
+   The real date input is overlaid (transparent) on the button so a genuine tap opens the picker, which iOS requires.
    Model: (Name, Value, Placeholder, Id). *@
 @model (string Name, string? Value, string Placeholder, string? Id)
 <span class="date-input">
     <input type="text" id="@(Model.Id ?? Model.Name)" name="@Model.Name" value="@Model.Value" placeholder="@Model.Placeholder"
            autocomplete="off" autocapitalize="off" spellcheck="false" />
-    <button type="button" class="date-picker-button" aria-label="Choose date from calendar">📅</button>
-    <input type="date" class="date-picker" tabindex="-1" aria-hidden="true" />
+    <span class="date-picker-wrap">
+        <button type="button" class="date-picker-button" tabindex="-1" aria-hidden="true">📅</button>
+        <input type="date" class="date-picker" aria-label="Choose date from calendar" />
+    </span>
 </span>

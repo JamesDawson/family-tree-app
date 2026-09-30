@@ -16,20 +16,17 @@
     return m[3] + "-" + String(idx + 1).padStart(2, "0") + "-" + m[1].padStart(2, "0");
   }
 
+  // The transparent date input sits over the calendar button, so the tap opens the native picker directly
+  // (iOS ignores programmatic showPicker/click). Just pre-select the date currently in the text field.
   // Delegated, so it keeps working after htmx swaps content in.
-  document.addEventListener("click", function (e) {
-    var button = e.target.closest(".date-picker-button");
-    if (!button) return;
-    var wrapper = button.closest(".date-input");
-    var picker = wrapper.querySelector(".date-picker");
-    picker.value = toIso(wrapper.querySelector("input[type=text]").value);
-    if (typeof picker.showPicker === "function") {
-      picker.showPicker();
-    } else {
-      picker.focus();
-      picker.click();
-    }
-  });
+  function syncPicker(e) {
+    var picker = e.target;
+    if (!picker.classList || !picker.classList.contains("date-picker")) return;
+    var iso = toIso(picker.closest(".date-input").querySelector("input[type=text]").value);
+    if (picker.value !== iso) picker.value = iso;
+  }
+  document.addEventListener("pointerdown", syncPicker);
+  document.addEventListener("focusin", syncPicker);
 
   document.addEventListener("change", function (e) {
     if (!e.target.classList || !e.target.classList.contains("date-picker")) return;

@@ -220,6 +220,11 @@ textarea {
   min-width: 0;
 }
 
+.date-picker-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
 .date-picker-button {
   font: inherit;
   cursor: pointer;
@@ -229,15 +234,15 @@ textarea {
   min-width: 2.75rem;
 }
 
-/* Kept in the layout (not display:none) so showPicker() can anchor the native picker to it. */
+/* Transparent, covers the button: the user's tap lands on the real date input, which is what iOS needs. */
 .date-picker {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 1px;
-  height: 1px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   opacity: 0;
-  pointer-events: none;
+  cursor: pointer;
+  font-size: 16px;
 }
 
 /* Mobile: 16px+ text stops iOS zooming on focus; 44px tap targets. */
