@@ -1,0 +1,29 @@
+@model ExternalSourceListViewModel
+
+@if (Model.Sources.Count == 0)
+{
+    <p class="muted">No external sources apply to this person.</p>
+}
+else
+{
+    <ul class="external-sources">
+        @foreach (var source in Model.Sources)
+        {
+            <li>
+                <button type="button" class="button"
+                        hx-get="@Url.Action("Search", "ExternalSearch", new { id = Model.PersonId, sourceId = source.Id })"
+                        hx-target="#external-search-results"
+                        hx-swap="innerHTML"
+                        hx-indicator="#external-search-loading">
+                    @source.DisplayName
+                </button>
+                @if (!string.IsNullOrEmpty(source.Description))
+                {
+                    <span class="muted">@source.Description</span>
+                }
+            </li>
+        }
+    </ul>
+    <p id="external-search-loading" class="htmx-indicator muted">Searching…</p>
+    <div id="external-search-results" aria-live="polite"></div>
+}

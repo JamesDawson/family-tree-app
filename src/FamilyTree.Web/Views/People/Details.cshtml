@@ -44,6 +44,21 @@
 </section>
 
 <section>
+    @* Collapsed by default; the buttons and any results live inside it. *@
+    <details class="external-search">
+        <summary><h2>Search external sources</h2></summary>
+        @* Fetches only the list of applicable sources, the first time the section is opened; nothing is sent to a third party until a source is chosen. *@
+        @* hx-target must be explicit: <body> sets hx-target="#main-content", which children inherit, so without it the list would replace the whole page. *@
+        <div hx-get="@Url.Action("Sources", "ExternalSearch", new { id = person.Id })"
+             hx-trigger="toggle once from:closest details"
+             hx-target="this"
+             hx-swap="innerHTML">
+            <p class="muted">Loading…</p>
+        </div>
+    </details>
+</section>
+
+<section>
     <h2>Parents</h2>
     @if (Model.Parents.Count == 0)
     {

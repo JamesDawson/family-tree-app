@@ -1,4 +1,5 @@
 using FamilyTree.Data.DependencyInjection;
+using FamilyTree.Data.ExternalSources;
 using FamilyTree.Data.Git;
 using FamilyTree.Data.Options;
 using FamilyTree.Web.Infrastructure;
@@ -12,6 +13,7 @@ builder.Services.AddControllersWithViews(options =>
 });
 
 builder.Services.AddFamilyTreeData(builder.Configuration, builder.Environment.ContentRootPath);
+builder.Services.AddExternalDataSources(builder.Configuration);
 builder.Services.AddSingleton<ICommitAuthorProvider, DefaultCommitAuthorProvider>();
 
 var app = builder.Build();

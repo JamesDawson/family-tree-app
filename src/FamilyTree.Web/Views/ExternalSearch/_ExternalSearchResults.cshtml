@@ -1,0 +1,60 @@
+@model ExternalSearchResultsViewModel
+
+<h3>@Model.SourceName</h3>
+
+@if (Model.Response.Error is { } error)
+{
+    <p class="error">@error</p>
+}
+else if (Model.Response.Results.Count == 0)
+{
+    <p class="muted">No results.</p>
+}
+else
+{
+    @foreach (var result in Model.Response.Results)
+    {
+        <article class="external-result">
+            <h4>
+                @if (result.Url is { } url)
+                {
+                    <a href="@url" target="_blank" rel="noopener noreferrer">@result.Title</a>
+                }
+                else
+                {
+                    @result.Title
+                }
+            </h4>
+            @if (!string.IsNullOrEmpty(result.Summary))
+            {
+                <p>@result.Summary</p>
+            }
+            @if (result.Details is { Count: > 0 } details)
+            {
+                <dl class="facts">
+                    @foreach (var (key, value) in details)
+                    {
+                        <dt>@key</dt>
+                        <dd>@value</dd>
+                    }
+                </dl>
+            }
+        </article>
+    }
+
+    @if (Model.Response.TotalCount is { } total)
+    {
+        <p class="muted">
+            Showing @Model.Response.Results.Count of @total.ToString("N0") matches.
+            @if (Model.Response.MoreResultsUrl is { } more)
+            {
+                <a href="@more" target="_blank" rel="noopener noreferrer">See all matches on the source's site</a>
+            }
+        </p>
+    }
+}
+
+@if (!string.IsNullOrEmpty(Model.Response.Attribution))
+{
+    <p class="muted">@Model.Response.Attribution</p>
+}
