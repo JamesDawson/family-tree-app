@@ -5,6 +5,10 @@
     var parentCount = ViewData["ParentCount"] as int? ?? 0;
 }
 
+<p class="actions">
+    <a class="button" asp-action="Details" asp-route-id="@personId">← Back to @Model.FirstName @Model.LastName</a>
+</p>
+
 <h1>Edit @Model.FirstName @Model.LastName</h1>
 
 <div class="add-relative">
