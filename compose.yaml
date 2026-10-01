@@ -28,6 +28,7 @@ services:
       FamilyTreeData__RemoteUrl: ${DATA_REPO_URL:-}
       # GitHub PAT used for the clone, fetch and pushes (needs Contents: read/write on the repo).
       FamilyTreeData__GitHubToken: ${GITHUB_PAT:-}
+      ExternalSources__WikiTree__AppId: ${WIKITREE_APP_ID:-FamilyTree}
     volumes:
       - family-tree-data:/data
     restart: unless-stopped
