@@ -498,3 +498,39 @@ textarea {
     padding: 0.5rem 0;
   }
 }
+
+/* Recently-visited breadcrumb trail (see js/breadcrumbs.js) */
+.breadcrumbs ol {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  margin: 0 auto;
+  max-width: 60rem;
+  padding: 0.5rem 1rem;
+  list-style: none;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  color: var(--color-muted);
+}
+
+.breadcrumbs li + li::before {
+  content: "\203A";
+  margin-right: 0.5rem;
+  color: var(--color-border);
+}
+
+.breadcrumbs li {
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.breadcrumbs a {
+  color: var(--color-accent);
+}
+
+.breadcrumbs [aria-current="page"] {
+  color: var(--color-text);
+  font-weight: 600;
+}

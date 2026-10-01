@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace FamilyTree.Web.Infrastructure;
 
-/// <summary>When a request carries the HX-Request header, renders views without the shared layout, so
-/// the response is just the fragment HTMX will swap into the page. This means most actions can simply
+/// <summary>When a request carries the HX-Request header, renders views with a minimal layout (just a
+/// `&lt;title&gt;` that HTMX applies to the document), so the response is otherwise just the fragment HTMX
+/// will swap into the page. This means most actions can simply
 /// `return View(model)` and get correct behavior for both full-page and HTMX-fragment requests.</summary>
 public sealed class HtmxLayoutResultFilter : IResultFilter
 {
@@ -14,7 +15,7 @@ public sealed class HtmxLayoutResultFilter : IResultFilter
 
         if (isHtmxRequest && context.Result is ViewResult viewResult)
         {
-            viewResult.ViewData["Layout"] = (string?)null;
+            viewResult.ViewData["Layout"] = "_HtmxLayout";
         }
     }
 

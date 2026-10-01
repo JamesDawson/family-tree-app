@@ -1,6 +1,6 @@
-﻿@{
-    // HtmxLayoutResultFilter sets ViewData["Layout"] = null for HX-Request requests, so the response
-    // is just the fragment HTMX will swap in, not a full page. Must check ContainsKey rather than
-    // "?? _Layout", since an explicit null value (key present) must NOT fall back to "_Layout".
+@{
+    // HtmxLayoutResultFilter sets ViewData["Layout"] to a minimal layout for HX-Request requests, so
+    // the response is just the fragment HTMX will swap in (plus a <title>), not a full page. Must check
+    // ContainsKey rather than "?? _Layout", to respect an explicitly-set value.
     Layout = ViewData.ContainsKey("Layout") ? ViewData["Layout"] as string : "_Layout";
 }
