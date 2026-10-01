@@ -18,7 +18,7 @@ else
             <h4>
                 @if (result.Url is { } url)
                 {
-                    <a href="@url" target="_blank" rel="noopener noreferrer">@result.Title</a>
+                    <a href="@url.AbsoluteUri" target="_blank" rel="noopener noreferrer">@result.Title</a>
                 }
                 else
                 {
@@ -48,7 +48,7 @@ else
             Showing @Model.Response.Results.Count of @total.ToString("N0") matches.
             @if (Model.Response.MoreResultsUrl is { } more)
             {
-                <a href="@more" target="_blank" rel="noopener noreferrer">See all matches on the source's site</a>
+                <a href="@more.AbsoluteUri" target="_blank" rel="noopener noreferrer">See all matches on the source's site</a>
             }
         </p>
     }

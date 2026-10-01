@@ -19,6 +19,7 @@ public static class ExternalSourcesServiceCollectionExtensions
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IExternalDataSource, NationalArchivesIrelandCensusSource>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IExternalDataSource, FreeCenSource>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IExternalDataSource, FreeBmdSource>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IExternalDataSource, FamilySearchSource>());
 
         // API sources.
         services.AddExternalSourceHttpClient(WikiTreeSource.ClientName, WikiTreeSource.BaseAddress);

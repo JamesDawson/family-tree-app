@@ -120,6 +120,58 @@ public sealed class ExternalSourcesTests
     }
 
     [TestMethod]
+    public async Task FamilySearch_returns_records_and_tree_links_with_escaped_parameters()
+    {
+        var name = new PersonName("Mary", "Ann", "O'Neill", "Byrne");
+        var context = Context(bornPlace: "Ballina, County Mayo", born: "1880", died: "1950", name: name, sex: Sex.Female) with { DiedPlace = "Leeds" };
+
+        var response = await new FamilySearchSource().SearchAsync(context, CancellationToken.None);
+
+        Assert.HasCount(2, response.Results);
+        var records = response.Results[0];
+        var tree = response.Results[1];
+        Assert.AreEqual(ExternalResultKind.SearchLink, records.Kind);
+        Assert.StartsWith("https://www.familysearch.org/search/record/results?", records.Url!.ToString());
+        Assert.StartsWith("https://www.familysearch.org/search/tree/results?", tree.Url!.ToString());
+
+        var query = records.Url.Query;
+        StringAssert.Contains(query, "q.givenName=Mary%20Ann");
+        StringAssert.Contains(query, "q.surname=O%27Neill");
+        StringAssert.Contains(query, "q.birthLikeDate.from=1880");
+        StringAssert.Contains(query, "q.birthLikeDate.to=1880");
+        StringAssert.Contains(query, "q.birthLikePlace=Ballina%2C%20County%20Mayo");
+        StringAssert.Contains(query, "q.deathLikeDate.from=1950");
+        StringAssert.Contains(query, "q.deathLikePlace=Leeds");
+        Assert.AreEqual(query, tree.Url.Query);
+    }
+
+    [TestMethod]
+    public async Task FamilySearch_omits_unknown_values_and_widens_approximate_dates()
+    {
+        var response = await new FamilySearchSource().SearchAsync(Context(born: "abt 1880", died: null), CancellationToken.None);
+
+        var query = response.Results[0].Url!.Query;
+        StringAssert.Contains(query, "q.birthLikeDate.from=1878");
+        StringAssert.Contains(query, "q.birthLikeDate.to=1882");
+        Assert.DoesNotContain("birthLikePlace", query);
+        Assert.DoesNotContain("deathLike", query);
+        Assert.AreEqual("1878–1882", response.Results[0].Details!["Birth years"]);
+    }
+
+    [TestMethod]
+    public async Task FamilySearch_lists_the_maiden_name_without_putting_it_in_the_url()
+    {
+        var name = new PersonName("Mary", null, "Walsh", "Byrne");
+
+        var response = await new FamilySearchSource().SearchAsync(Context(name: name, sex: Sex.Female), CancellationToken.None);
+
+        var result = response.Results[0];
+        Assert.AreEqual("Byrne", result.Details!["Maiden name (for records before marriage)"]);
+        Assert.DoesNotContain("Byrne", result.Url!.Query);
+        Assert.IsTrue(new FamilySearchSource().IsAvailableFor(Context(bornPlace: "Anywhere")));
+    }
+
+    [TestMethod]
     public void Registry_returns_only_enabled_and_applicable_sources()
     {
         var options = Microsoft.Extensions.Options.Options.Create(new ExternalSourcesOptions
