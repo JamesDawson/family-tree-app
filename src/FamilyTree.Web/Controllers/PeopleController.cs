@@ -23,7 +23,7 @@ public sealed class PeopleController(
 
         var filtered = string.IsNullOrWhiteSpace(q)
             ? people
-            : people.Where(p => p.Name.DisplayName.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
+            : people.Where(p => p.Name.Matches(q)).ToList();
 
         var model = new PersonListViewModel
         {
@@ -409,7 +409,7 @@ public sealed class PeopleController(
         var matches = string.IsNullOrWhiteSpace(q)
             ? []
             : people
-                .Where(p => p.Id != personId && p.Name.DisplayName.Contains(q, StringComparison.OrdinalIgnoreCase))
+                .Where(p => p.Id != personId && p.Name.Matches(q))
                 .OrderBy(p => p.Name.DisplayName)
                 .Take(10)
                 .ToList();
