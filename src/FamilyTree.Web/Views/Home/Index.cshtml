@@ -19,7 +19,7 @@
         @foreach (var change in Model.RecentChanges)
         {
             <li>
-                <a asp-controller="People" asp-action="Details" asp-route-id="@change.Person.Id">@change.Person.Name.DisplayName</a>
+                <a asp-controller="People" asp-action="Details" asp-route-id="@change.Person.Id">@change.Person.Name.FullDisplayName</a>
                 — @change.LatestCommit.Message
                 <span class="muted">(@change.LatestCommit.When.LocalDateTime.ToString("g"))</span>
             </li>

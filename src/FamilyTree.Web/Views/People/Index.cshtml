@@ -28,7 +28,7 @@ else
             @foreach (var person in Model.People)
             {
                 <tr>
-                    <td><a asp-controller="People" asp-action="Details" asp-route-id="@person.Id">@person.Name.DisplayName</a></td>
+                    <td><a asp-controller="People" asp-action="Details" asp-route-id="@person.Id">@person.Name.FullDisplayName</a></td>
                     <td>@person.BornOn?.ToDisplayString()</td>
                     <td>@person.DiedOn?.ToDisplayString()</td>
                 </tr>

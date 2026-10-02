@@ -2,10 +2,10 @@
 @model PersonWithRelationships
 @{
     var person = Model.Person;
-    ViewData["Title"] = person.Name.DisplayName;
+    ViewData["Title"] = person.Name.FullDisplayName;
 }
 
-<h1>@person.Name.DisplayName</h1>
+<h1>@person.Name.FullDisplayName</h1>
 
 @if (TempData["DeleteError"] is string deleteError)
 {
