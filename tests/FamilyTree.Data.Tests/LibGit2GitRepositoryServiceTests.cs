@@ -107,6 +107,37 @@ public class LibGit2GitRepositoryServiceTests
     }
 
     [TestMethod]
+    public void GetLatestCommits_ReturnsLatestCommitPerPathNewestFirstAndHonoursLimit()
+    {
+        WriteFile("people/john.md", "v1");
+        _git.CommitFiles(["people/john.md"], "Add John", Author);
+        WriteFile("people/jane.md", "v1");
+        _git.CommitFiles(["people/jane.md"], "Add Jane", Author);
+        WriteFile("people/bob.md", "v1");
+        _git.CommitFiles(["people/bob.md"], "Add Bob", Author);
+        WriteFile("people/john.md", "v2");
+        _git.CommitFiles(["people/john.md"], "Update John", Author);
+
+        var paths = new HashSet<string> { "people/john.md", "people/jane.md", "people/bob.md", "people/none.md" };
+
+        // Commits made within the same second have no defined relative order, so only the newest is pinned down.
+        var all = _git.GetLatestCommits(paths, 10);
+        Assert.AreEqual(3, all.Count);
+        Assert.AreEqual("people/john.md", all[0].Path);
+        CollectionAssert.AreEquivalent(
+            new[] { "people/john.md", "people/bob.md", "people/jane.md" },
+            all.Select(x => x.Path).ToArray());
+        foreach (var (path, commit) in all)
+        {
+            Assert.AreEqual(_git.GetHistory(path)[0].Sha, commit.Sha);
+        }
+
+        var top1 = _git.GetLatestCommits(paths, 1);
+        Assert.AreEqual(1, top1.Count);
+        Assert.AreEqual("people/john.md", top1[0].Path);
+    }
+
+    [TestMethod]
     public void GetFileContentAtCommit_ReturnsHistoricContent()
     {
         WriteFile("people/jane.md", "v1");

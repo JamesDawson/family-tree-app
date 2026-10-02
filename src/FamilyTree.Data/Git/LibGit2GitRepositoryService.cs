@@ -316,6 +316,51 @@ public sealed class LibGit2GitRepositoryService : IGitRepositoryService
         return result;
     }
 
+    public IReadOnlyList<(string Path, CommitInfo Commit)> GetLatestCommits(IReadOnlySet<string> relativePaths, int limit)
+    {
+        var result = new List<(string Path, CommitInfo Commit)>();
+        if (limit <= 0 || relativePaths.Count == 0)
+        {
+            return result;
+        }
+
+        var wanted = relativePaths.Select(Normalize).ToHashSet(StringComparer.Ordinal);
+        var found = new HashSet<string>(StringComparer.Ordinal);
+
+        using var repo = new GitRepository(_paths.RootPath);
+
+        // repo.Commits is newest-first, so the first commit that changes a path is its latest.
+        foreach (var commit in repo.Commits)
+        {
+            var parentTree = commit.Parents.FirstOrDefault()?.Tree;
+            var changes = repo.Diff.Compare<TreeChanges>(parentTree, commit.Tree);
+
+            CommitInfo? info = null;
+            foreach (var change in changes)
+            {
+                var path = Normalize(change.Path);
+                if (!wanted.Contains(path) || !found.Add(path))
+                {
+                    continue;
+                }
+
+                info ??= ToCommitInfo(commit);
+                result.Add((path, info));
+                if (result.Count >= limit)
+                {
+                    return result;
+                }
+            }
+
+            if (found.Count == wanted.Count)
+            {
+                break;
+            }
+        }
+
+        return result;
+    }
+
     private static string? BlobIdAt(Commit commit, string normalizedPath) => commit[normalizedPath]?.Target.Sha;
 
     public string GetFileContentAtCommit(string relativePath, string commitSha)

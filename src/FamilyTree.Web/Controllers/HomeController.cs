@@ -11,20 +11,12 @@ public sealed class HomeController(IPersonRepository repository) : Controller
     {
         var people = await repository.GetAllAsync(ct);
 
-        var recentChanges = new List<RecentChange>();
-        foreach (var person in people)
-        {
-            var history = await repository.GetHistoryAsync(person.Id, ct);
-            if (history.Count > 0)
-            {
-                recentChanges.Add(new RecentChange(person, history[0]));
-            }
-        }
+        var recent = await repository.GetRecentlyChangedAsync(10, ct);
 
         var model = new DashboardViewModel
         {
             PersonCount = people.Count,
-            RecentChanges = [.. recentChanges.OrderByDescending(c => c.LatestCommit.When).Take(10)],
+            RecentChanges = [.. recent.Select(r => new RecentChange(r.Person, r.LatestCommit))],
         };
 
         return View(model);

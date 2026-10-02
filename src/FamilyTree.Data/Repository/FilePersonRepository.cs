@@ -276,6 +276,15 @@ public sealed class FilePersonRepository : IPersonRepository
     public Task<IReadOnlyList<CommitInfo>> GetHistoryAsync(string id, CancellationToken ct = default) =>
         Task.FromResult(_git.GetHistory(RelativePathFor(id)));
 
+    public async Task<IReadOnlyList<(Person Person, CommitInfo LatestCommit)>> GetRecentlyChangedAsync(int count, CancellationToken ct = default)
+    {
+        var people = await GetAllAsync(ct);
+        var byPath = people.ToDictionary(p => RelativePathFor(p.Id), StringComparer.Ordinal);
+
+        return [.. _git.GetLatestCommits(byPath.Keys.ToHashSet(StringComparer.Ordinal), count)
+            .Select(x => (byPath[x.Path], x.Commit))];
+    }
+
     public async Task<Person> RevertToCommitAsync(string id, string commitSha, CommitAuthor author, CancellationToken ct = default)
     {
         await _writeLock.WaitAsync(ct);

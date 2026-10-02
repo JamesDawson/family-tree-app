@@ -18,6 +18,11 @@ public interface IGitRepositoryService
     /// <summary>Returns the commits that touched the given path, newest first.</summary>
     IReadOnlyList<CommitInfo> GetHistory(string relativePath);
 
+    /// <summary>Returns, for the most recently changed of the given paths, the latest commit touching each — newest first,
+    /// at most <paramref name="limit"/> entries. Walks history once and stops as soon as <paramref name="limit"/> paths are
+    /// resolved, so it costs far less than calling <see cref="GetHistory"/> per path. Paths with no history are omitted.</summary>
+    IReadOnlyList<(string Path, CommitInfo Commit)> GetLatestCommits(IReadOnlySet<string> relativePaths, int limit);
+
     /// <summary>Returns the file content of the given path as of the given commit.</summary>
     string GetFileContentAtCommit(string relativePath, string commitSha);
 

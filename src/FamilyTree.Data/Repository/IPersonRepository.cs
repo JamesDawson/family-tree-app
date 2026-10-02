@@ -37,6 +37,9 @@ public interface IPersonRepository
 
     Task<IReadOnlyList<CommitInfo>> GetHistoryAsync(string id, CancellationToken ct = default);
 
+    /// <summary>Returns the most recently changed people with their latest commit, newest first.</summary>
+    Task<IReadOnlyList<(Person Person, CommitInfo LatestCommit)>> GetRecentlyChangedAsync(int count, CancellationToken ct = default);
+
     /// <summary>Reverts a person's file to its content as of the given commit, as a new forward commit.</summary>
     Task<Person> RevertToCommitAsync(string id, string commitSha, CommitAuthor author, CancellationToken ct = default);
 }
