@@ -28,11 +28,11 @@
     {
         <div class="form-field">
             <label asp-for="MarriedOn"></label>
-            <partial name="_DateInput" model="@(nameof(Model.MarriedOn), Model.MarriedOn, "e.g. 15-Jun-2001, 2001", (string?)null)" />
+            <partial name="_DateInput" model="@(nameof(Model.MarriedOn), Model.MarriedOn, "e.g. 15-Jun-2001, Jan/Mar-2001, 2001", (string?)null)" />
         </div>
         <div class="form-field">
             <label asp-for="DivorcedOn"></label>
-            <partial name="_DateInput" model="@(nameof(Model.DivorcedOn), Model.DivorcedOn, "e.g. 02-Nov-2010", (string?)null)" />
+            <partial name="_DateInput" model="@(nameof(Model.DivorcedOn), Model.DivorcedOn, "e.g. 02-Nov-2010, Oct/Dec-2010", (string?)null)" />
         </div>
         <div class="form-field">
             <label><input type="checkbox" asp-for="CurrentSpouse" /> Current spouse</label>
@@ -66,7 +66,7 @@
 </div>
 <div class="form-field">
     <label asp-for="BornOn"></label>
-    <partial name="_DateInput" model="@(nameof(Model.BornOn), Model.BornOn, "e.g. 15-Jun-1976, 1976, abt 1976", (string?)null)" />
+    <partial name="_DateInput" model="@(nameof(Model.BornOn), Model.BornOn, "e.g. 15-Jun-1976, Jul/Sep-1976, 1976, abt 1976", (string?)null)" />
 </div>
 <div class="form-field">
     <label asp-for="BornPlace"></label>
@@ -74,7 +74,7 @@
 </div>
 <div class="form-field">
     <label asp-for="DiedOn"></label>
-    <partial name="_DateInput" model="@(nameof(Model.DiedOn), Model.DiedOn, "e.g. 02-Nov-1998, bef 2000", (string?)null)" />
+    <partial name="_DateInput" model="@(nameof(Model.DiedOn), Model.DiedOn, "e.g. 02-Nov-1998, Oct/Dec-1998, bef 2000", (string?)null)" />
 </div>
 <div class="form-field">
     <label asp-for="DiedPlace"></label>

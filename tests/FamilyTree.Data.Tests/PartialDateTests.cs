@@ -59,6 +59,43 @@ public class PartialDateTests
     }
 
     [TestMethod]
+    [DataRow("Jan/Mar-1952", 1952, 1, DateQualifier.Exact)]
+    [DataRow("jul/sep 1952", 1952, 3, DateQualifier.Exact)]
+    [DataRow("Apr-Jun-1952", 1952, 2, DateQualifier.Exact)]
+    [DataRow("abt Oct/Dec-1900", 1900, 4, DateQualifier.About)]
+    [DataRow("1952-Q2", 1952, 2, DateQualifier.Exact)]
+    [DataRow("Q4 1952", 1952, 4, DateQualifier.Exact)]
+    [DataRow("bef Q1-1952", 1952, 1, DateQualifier.Before)]
+    public void Parse_RecognizesQuarters(string input, int year, int quarter, DateQualifier qualifier)
+    {
+        Assert.AreEqual(new PartialDate(year, null, null, qualifier, quarter), PartialDate.Parse(input));
+    }
+
+    [TestMethod]
+    [DataRow("Feb/Apr-1952")]
+    [DataRow("Jan/Feb-1952")]
+    [DataRow("Mar/Jun-1952")]
+    [DataRow("1952-Q5")]
+    [DataRow("1952-Q1-05")]
+    [DataRow("Q5 1952")]
+    public void Parse_ThrowsForInvalidQuarters(string input)
+    {
+        Assert.ThrowsExactly<FormatException>(() => PartialDate.Parse(input));
+    }
+
+    [TestMethod]
+    [DataRow("1952-Q3", "Jul/Sep-1952")]
+    [DataRow("abt 1900-Q1", "abt Jan/Mar-1900")]
+    public void Quarter_DisplaysAsMonthRange_AndStoresCanonically(string canonical, string display)
+    {
+        var date = PartialDate.Parse(canonical)!;
+
+        Assert.AreEqual(display, date.ToDisplayString());
+        Assert.AreEqual(canonical, date.ToString());
+        Assert.AreEqual(canonical, PartialDate.Parse(display)!.ToString());
+    }
+
+    [TestMethod]
     [DataRow(null)]
     [DataRow("")]
     [DataRow("   ")]
